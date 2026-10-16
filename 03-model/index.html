@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>The model layer · Conducting the agent</title>
+<meta name="description" content="How the Power BI semantic model is built: bronze, silver and gold layers, facts and dimensions, relationships and measures.">
+<link rel="stylesheet" href="../assets/css/course.css">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sans:"Nunito",ui-rounded,"Segoe UI",system-ui,-apple-system,sans-serif;
+  --bg:#FFFFFF; --hdr:rgba(255,255,255,.92); --panel:#FFFFFF; --soft:#F3F5F6; --line:#DEE3E6;
+  --ink:#2D3439; --slate:#5E6870;
+  --green:#0F7C72; --green-d:#0A5C55; --green-l:#D3F1EC;
+  --blue:#3A6EA5; --blue-d:#2B5A8C; --blue-l:#E3ECF6;
+  --red:#C8413A; --red-d:#A8322C; --red-l:#FAE2DF;
+  --gold:#F2B33D; --gold-d:#C98E1C; --gold-l:#FBF1D9;
+  --orange:#D9772B; --purple:#9466C4;
+  --bronze:#CD7F32; --bronze-d:#9A5B1F; --bronze-l:#F8E6D4;
+  --silver:#9AA5B1; --silver-d:#5F6B78; --silver-l:#EDF0F3;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#12191D; --hdr:rgba(18,25,29,.92); --panel:#1B252A; --soft:#22303A; --line:#36434B;
+    --ink:#EEF2F4; --slate:#A2AEB5;
+    --green-l:#123A36; --green-d:#5CCABD; --blue-l:#1C2E45; --blue-d:#8DB4E2;
+    --red-l:#4A211E; --red-d:#F09088; --gold-l:#3A2F17; --gold-d:#F5C766;
+    --bronze-l:#3A2718; --bronze-d:#E7A366; --silver-l:#27333B; --silver-d:#C4CDD6;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12191D; --hdr:rgba(18,25,29,.92); --panel:#1B252A; --soft:#22303A; --line:#36434B;
+  --ink:#EEF2F4; --slate:#A2AEB5;
+  --green-l:#123A36; --green-d:#5CCABD; --blue-l:#1C2E45; --blue-d:#8DB4E2;
+  --red-l:#4A211E; --red-d:#F09088; --gold-l:#3A2F17; --gold-d:#F5C766;
+  --bronze-l:#3A2718; --bronze-d:#E7A366; --silver-l:#27333B; --silver-d:#C4CDD6;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 70px)}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17.5px;line-height:1.6;font-weight:600;-webkit-font-smoothing:antialiased}
+a{color:var(--blue-d)}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px;border-radius:8px}
+.wrap{max-width:820px;margin:0 auto;padding:0 20px}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--hdr);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:2px solid var(--line)}
+.bar{display:flex;align-items:center;gap:14px;height:60px}
+.bar .home{display:flex;align-items:center;gap:8px;color:var(--gold-d);font-weight:900;font-size:18px;text-decoration:none;white-space:nowrap}
+.bar .home svg{width:32px;height:32px}
+.pbar{flex:1;height:16px;background:var(--line);border-radius:999px;overflow:hidden;min-width:60px}
+.pbar i{display:block;height:100%;width:0;background:var(--green);border-radius:999px;transition:width .5s cubic-bezier(.3,1.4,.5,1);box-shadow:inset 0 -4px 0 rgba(0,0,0,.08)}
+.stat{display:flex;align-items:center;gap:4px;font-weight:900;font-size:16px;white-space:nowrap}
+.stat.fire{color:var(--orange)} .stat.xp{color:var(--blue)}
+.stat svg{width:22px;height:22px}
+.bump{animation:bump .5s}
+@keyframes bump{30%{transform:scale(1.35)}}
+.hero{padding:34px 0 18px}
+.eyebrow{display:inline-block;font-weight:800;font-size:13px;letter-spacing:.06em;color:var(--gold-d);background:var(--gold-l);border-radius:999px;padding:4px 12px;margin-bottom:14px}
+h1{font-size:clamp(32px,5.4vw,50px);line-height:1.05;letter-spacing:-.01em;margin:0 0 18px;font-weight:900}
+h2{font-size:clamp(24px,3.6vw,30px);line-height:1.15;margin:0 0 10px;font-weight:900}
+h3{font-size:19px;margin:18px 0 6px;font-weight:900}
+.intro{display:flex;gap:18px;align-items:flex-end}
+.intro svg.mascot{width:110px;height:110px;flex:none}
+.bubble{position:relative;background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:14px 18px;font-size:18px;color:var(--ink);max-width:48ch}
+.bubble::before{content:"";position:absolute;left:-12px;bottom:22px;border:10px solid transparent;border-right-color:var(--line)}
+.bubble::after{content:"";position:absolute;left:-8px;bottom:23px;border:9px solid transparent;border-right-color:var(--panel)}
+.byline{margin-top:16px;color:var(--slate);font-size:15px}
+section{padding:30px 0;border-top:2px solid var(--line);position:relative}
+.snum{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--gold);color:#5A4300;font-weight:900;font-size:18px;box-shadow:0 4px 0 var(--gold-d);margin-bottom:12px}
+p{margin:0 0 14px;max-width:68ch}
+.muted{color:var(--slate)}
+code,.mono{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-size:.88em;background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-weight:600}
+.panel{background:var(--panel);border:2px solid var(--line);border-bottom-width:4px;border-radius:20px;padding:18px;margin:14px 0}
+.ask{font-weight:900;font-size:19px;margin:18px 0 4px}
+.choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:12px 0}
+.choices.three{grid-template-columns:repeat(3,1fr)} .choices.two{grid-template-columns:repeat(2,1fr)}
+.choice{font-family:var(--sans);font-weight:800;font-size:15.5px;background:var(--panel);border:2px solid var(--line);border-bottom-width:4px;border-radius:14px;padding:12px 16px;cursor:pointer;color:var(--ink);text-align:left;transition:transform .08s,background .15s}
+.choices.three .choice,.choices.two .choice{text-align:center}
+.choice:hover{background:var(--soft)} .choice:active{transform:translateY(2px);border-bottom-width:2px}
+.choice[aria-pressed=true]{background:var(--blue-l);border-color:var(--blue);color:var(--blue-d)}
+.choice.right{background:var(--green-l)!important;border-color:var(--green)!important;color:var(--green-d)!important}
+.choice.wrong{background:var(--red-l)!important;border-color:var(--red)!important;color:var(--red-d)!important;animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+.verdict{font-size:15.5px;border-radius:14px;font-weight:700}
+.verdict.ok,.verdict.bad{padding:12px 16px;margin:4px 0 8px}
+.verdict.ok{background:var(--green-l);color:var(--green-d)} .verdict.bad{background:var(--red-l);color:var(--red-d)}
+.verdict b{font-weight:900}
+.item{padding:12px 0;border-bottom:2px dashed var(--line)} .item:last-of-type{border-bottom:0}
+.item .q{font-weight:800;font-size:16.5px}
+.score{float:right;font-weight:900;color:var(--blue-d);background:var(--blue-l);border-radius:999px;padding:3px 12px;font-size:14px}
+.stage{position:relative;border-radius:20px}
+.cover{position:absolute;inset:-4px;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;background:var(--soft);border:2px dashed var(--line);border-radius:22px;padding:18px;font-weight:800;color:var(--slate)}
+.cover svg{width:84px;height:84px}
+.stage.open .cover{animation:lift .45s forwards}
+@keyframes lift{to{opacity:0;transform:translateY(-24px);visibility:hidden}}
+.stage.open.done-lift .cover{display:none}
+.rule{margin:8px 0 0;background:var(--gold-l);border:2px solid var(--gold);border-radius:18px;padding:16px 18px;font-weight:800;color:var(--ink)}
+.rule b{display:block;color:var(--gold-d);font-weight:900;margin-bottom:2px}
+.big-btn{display:inline-block;font-family:var(--sans);font-weight:900;font-size:17px;letter-spacing:.04em;text-transform:uppercase;background:var(--green);color:#fff;border:0;border-radius:16px;padding:14px 28px;box-shadow:0 5px 0 var(--green-d);cursor:pointer;text-decoration:none;transition:transform .08s,box-shadow .08s}
+.big-btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--green-d)}
+.big-btn.blue{background:var(--blue);box-shadow:0 5px 0 var(--blue-d)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:8px}
+.seg button,.tbtn{font-family:var(--sans);font-weight:800;font-size:15px;background:var(--panel);border:2px solid var(--line);border-bottom-width:4px;border-radius:12px;padding:8px 14px;cursor:pointer;color:var(--ink)}
+.seg button[aria-pressed=true],.tbtn[aria-pressed=true]{background:var(--blue-l);border-color:var(--blue);color:var(--blue-d)}
+.readout{display:flex;flex-wrap:wrap;gap:8px 22px;align-items:center;margin-top:14px;border-top:2px dashed var(--line);padding-top:14px;font-size:14.5px;color:var(--slate);font-weight:700}
+.readout b{color:var(--ink)} .readout .big{font-size:24px;font-weight:900;color:var(--ink)}
+.tag{font-weight:900;font-size:12px;letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:5px 12px}
+.tag.bad{background:var(--red-l);color:var(--red-d)} .tag.ok{background:var(--green-l);color:var(--green-d)}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table.t{border-collapse:separate;border-spacing:0;width:100%;font-size:15px}
+table.t th,table.t td{padding:8px 10px;border-bottom:2px solid var(--line);text-align:left;white-space:nowrap}
+table.t th{font-weight:900;color:var(--slate);font-size:13px}
+table.t td.n,table.t th.n{text-align:right;font-variant-numeric:tabular-nums}
+tr.dim td{opacity:.28}
+tr.hit td{background:var(--gold-l)}
+.medal{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;font-weight:900;font-size:14px;color:#fff;flex:none;box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
+.medal.b{background:var(--bronze)} .medal.s{background:var(--silver)} .medal.g{background:var(--gold);color:#5A4300}
+.layers{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
+.layer{border-radius:18px;padding:14px;border:2px solid;border-bottom-width:5px}
+.layer.b{background:var(--bronze-l);border-color:var(--bronze)} .layer.s{background:var(--silver-l);border-color:var(--silver)} .layer.g{background:var(--gold-l);border-color:var(--gold)}
+.layer h3{margin:8px 0 4px;display:flex;gap:8px;align-items:center}
+.layer p{font-size:15px;margin:0}
+.layer .grp{font-size:13px;color:var(--slate);font-weight:800;margin-top:8px}
+.switch{display:flex;align-items:center;gap:12px;padding:10px 0;font-weight:800;cursor:pointer}
+.switch input{appearance:none;-webkit-appearance:none;width:52px;height:30px;border-radius:999px;background:var(--line);position:relative;cursor:pointer;transition:background .2s;flex:none;margin:0}
+.switch input::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 0 rgba(0,0,0,.15);transition:left .2s}
+.switch input:checked{background:var(--green)} .switch input:checked::after{left:25px}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:10px;padding:5px 10px;font-weight:800;font-size:14px;border:2px solid var(--line);background:var(--panel);margin:3px}
+.say{display:flex;gap:12px;align-items:center;margin-top:12px}
+.say svg{width:64px;height:64px;flex:none}
+.say .bubble{font-size:16px}
+.finish{text-align:center;padding:34px 0 10px;border-top:2px solid var(--line)}
+footer{color:var(--slate);font-size:13.5px;padding:26px 0 44px}
+.xpfly{position:fixed;z-index:60;font-weight:900;color:var(--gold-d);font-size:18px;pointer-events:none;animation:fly 1s ease-out forwards}
+@keyframes fly{to{transform:translateY(-46px);opacity:0}}
+.done-screen{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.45);display:grid;place-items:center;padding:20px}
+.done-screen[hidden]{display:none}
+.done-card{background:var(--panel);border-radius:24px;padding:26px 22px;max-width:440px;width:100%;text-align:center;border:2px solid var(--line)}
+.done-card svg.mascot{width:120px;height:120px}
+.done-card h2{color:var(--gold-d);margin:6px 0 16px}
+.done-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.ds{border-radius:14px;border:2px solid;overflow:hidden}
+.ds .k{font-size:12px;font-weight:900;color:#fff;padding:4px}
+.ds .v{font-size:22px;font-weight:900;padding:8px 4px}
+.ds.xp{border-color:var(--gold)} .ds.xp .k{background:var(--gold);color:#5A4300} .ds.xp .v{color:var(--gold-d)}
+.ds.acc{border-color:var(--green)} .ds.acc .k{background:var(--green)} .ds.acc .v{color:var(--green-d)}
+.ds.fire{border-color:var(--orange)} .ds.fire .k{background:var(--orange)} .ds.fire .v{color:var(--orange)}
+.link-btn{display:block;margin:14px auto 0;background:none;border:0;font-family:var(--sans);font-weight:800;font-size:15px;color:var(--blue-d);cursor:pointer}
+.confetti{position:fixed;top:-12px;width:10px;height:14px;z-index:90;pointer-events:none;border-radius:2px;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(720deg)}}
+nav.pn{padding:26px 0 0;display:flex;justify-content:space-between;gap:16px;font-weight:800;font-size:14.5px}
+nav.pn a{color:var(--blue-d);text-decoration:none;max-width:48%}
+@media (max-width:640px){
+  body{font-size:16.5px}
+  .layers{grid-template-columns:1fr}
+  .intro svg.mascot{width:80px;height:80px}
+  .bubble{font-size:16.5px}
+  .choices.three{grid-template-columns:1fr 1fr 1fr}
+  .choices.three .choice{padding:10px 6px;font-size:14px}
+  .stat svg{width:18px;height:18px}
+}
+
+.unit{display:flex;justify-content:space-between;align-items:center;gap:16px;background:var(--gold);color:#5A4300;border-radius:20px;padding:18px 20px;margin-top:26px;box-shadow:0 5px 0 var(--gold-d)}
+.unit .u{font-weight:900;font-size:13px;letter-spacing:.06em;opacity:.8}
+.unit h1{font-size:clamp(28px,5vw,40px);margin:2px 0 4px;color:#3D2E00}
+.unit p{margin:0;font-weight:800}
+.unit a{flex:none;background:#fff;color:#5A4300;border-radius:14px;padding:10px 16px;font-weight:900;text-decoration:none;box-shadow:0 4px 0 var(--gold-d)}
+.unitlink{display:inline-block;margin-top:14px;font-weight:900;font-size:15px;color:var(--green-d);background:var(--green-l);border-radius:12px;padding:8px 14px;text-decoration:none}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:22px 0}
+.sc{display:flex;gap:10px;align-items:center;border:2px solid var(--line);border-radius:16px;padding:12px}
+.sc svg{width:30px;height:30px;flex:none}
+.sc .v{font-weight:900;font-size:22px;line-height:1}.sc .k{font-size:13px;color:var(--slate);font-weight:800}
+.path{display:flex;flex-direction:column;align-items:center;gap:22px;padding:20px 0 30px}
+.stop{position:relative;display:flex;flex-direction:column;align-items:center}
+.node{position:relative;width:78px;height:72px;border-radius:50%;border:0;font-size:30px;cursor:pointer;background:var(--line);box-shadow:0 7px 0 #CFCFCF;transition:transform .08s}
+.node:active{transform:translateY(5px);box-shadow:0 2px 0 #CFCFCF}
+.node.next{background:var(--gold);box-shadow:0 7px 0 var(--gold-d)}
+.node.done{background:var(--green);box-shadow:0 7px 0 var(--green-d)}
+.node .crown{position:absolute;right:-8px;top:-10px;width:28px;height:28px}
+.start{font-weight:900;font-size:13px;color:var(--gold-d);background:var(--panel);border:2px solid var(--line);border-radius:10px;padding:3px 10px;margin-bottom:8px;animation:bob 1.4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-4px)}}
+.pop{margin-top:14px;width:min(340px,86vw);background:var(--gold);color:#3D2E00;border-radius:18px;padding:14px 16px;box-shadow:0 5px 0 var(--gold-d);font-weight:700;font-size:15.5px;z-index:4}
+.pop.done{background:var(--green);color:#fff;box-shadow:0 5px 0 var(--green-d)}
+.pop b{display:block;font-size:18px;font-weight:900;margin-bottom:4px}
+.pop .try{display:block;margin:8px 0 12px;font-size:14px;opacity:.9}
+.pop a{display:block;text-align:center;background:#fff;color:#3D2E00;border-radius:12px;padding:10px;font-weight:900;text-decoration:none;text-transform:uppercase;letter-spacing:.04em}
+.trophy{width:84px;height:84px;filter:grayscale(1);opacity:.4;transition:.4s}
+.trophy.won{filter:none;opacity:1}
+.fcard{perspective:900px;margin:12px 0;cursor:pointer;min-height:170px}
+.fin{position:relative;min-height:170px;transition:transform .5s;transform-style:preserve-3d}
+.fcard.flip .fin{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:grid;place-items:center;text-align:center;border:2px solid var(--line);border-bottom-width:5px;border-radius:20px;padding:18px;font-weight:900;font-size:24px;background:var(--panel)}
+.face.b{transform:rotateY(180deg);font-size:17px;font-weight:700;background:var(--gold-l);border-color:var(--gold)}
+dl{margin:10px 0}
+dt{font-weight:900;margin-top:10px} dd{margin:0 0 6px;color:var(--slate)}
+input.search{width:100%;font-family:var(--sans);font-weight:700;font-size:16px;padding:12px 14px;border:2px solid var(--line);border-radius:14px;background:var(--panel);color:var(--ink)}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+@media (max-width:640px){.stats{grid-template-columns:1fr}}
+</style>
+<style id="cta-palette">:root{--gold-d:#8A6000;--orange:#B5571A;--ember-ink:#9A4A0C;--purple-d:#6E449E;}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--green-d:#5CCABD;--blue:#7FA8DA;--blue-d:#8DB4E2;--gold-d:#E9C46A;--red:#F07A70;--red-d:#F09088;--purple-d:#C3A6E8;--orange:#E8935A;--ember-ink:#E8935A;--deep:#8DB4E2;}:root:not([data-theme="light"]) .pop{background:#24476E}:root:not([data-theme="light"]) .xpfly,:root:not([data-theme="light"]) .bar .home{color:var(--green-d)}:root:not([data-theme="light"]) .series a.here,:root:not([data-theme="light"]) .step .num,:root:not([data-theme="light"]) .node .dot,:root:not([data-theme="light"]) .pbtn,:root:not([data-theme="light"]) .snum,:root:not([data-theme="light"]) .loop .n{color:#12191D}}:root[data-theme="dark"]{--green-d:#5CCABD;--blue:#7FA8DA;--blue-d:#8DB4E2;--gold-d:#E9C46A;--red:#F07A70;--red-d:#F09088;--purple-d:#C3A6E8;--orange:#E8935A;--ember-ink:#E8935A;--deep:#8DB4E2;}:root[data-theme="dark"] .pop{background:#24476E}:root[data-theme="dark"] .xpfly,:root[data-theme="dark"] .bar .home{color:var(--green-d)}:root[data-theme="dark"] .series a.here,:root[data-theme="dark"] .step .num,:root[data-theme="dark"] .node .dot,:root[data-theme="dark"] .pbtn,:root[data-theme="dark"] .snum,:root[data-theme="dark"] .loop .n{color:#12191D}</style>
+</head>
+<body>
+<header><div class="wrap bar">
+  <span class="home"><svg class="" viewBox="0 0 112 108" aria-hidden="true"><ellipse cx="57" cy="101" rx="34" ry="5" fill="rgba(0,0,0,.08)"/><path d="M16 64 C12 44 26 30 44 30 C54 18 78 18 88 32 C102 38 104 62 96 76 C88 94 62 98 46 94 C28 94 18 82 16 64Z" fill="#F2B33D" stroke="#C98E1C" stroke-width="3.5" stroke-linejoin="round"/><path d="M30 46 C34 38 42 34 50 34" stroke="#FAE7B5" stroke-width="5" stroke-linecap="round" fill="none"/><path d="M78 84 L88 74 L92 80Z" fill="#DDA12E"/><path d="M24 74 L32 84 L22 82Z" fill="#DDA12E"/><path d="M96 10 l3 8 8 3 -8 3 -3 8 -3 -8 -8 -3 8 -3z" fill="#F2B33D"/><circle cx="44" cy="58" r="9" fill="#fff"/><circle cx="70" cy="58" r="9" fill="#fff"/><circle cx="46" cy="60" r="4.5" fill="#2D3439"/><circle cx="72" cy="60" r="4.5" fill="#2D3439"/><circle cx="47.5" cy="58.5" r="1.5" fill="#fff"/><circle cx="73.5" cy="58.5" r="1.5" fill="#fff"/><ellipse cx="32" cy="72" rx="6" ry="4" fill="#FF9F6B" opacity=".55"/><ellipse cx="82" cy="72" rx="6" ry="4" fill="#FF9F6B" opacity=".55"/><path d="M47 72 Q57 82 67 72" stroke="#5A4300" stroke-width="4" fill="none" stroke-linecap="round"/></svg><span>Model</span></span>
+  <span style="flex:1"></span>
+  <span class="stat fire" title="Day streak"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c1 4 5 6 5 11a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5 0 2 1 3 2 3 0-3-1-6 1-9.5z" fill="#D9772B"/><path d="M12 13c1 1.5 2 2.5 2 4a2 2 0 0 1-4 0c0-1.5 1-2.5 2-4z" fill="#F2B33D"/></svg><span id="fireN">0</span></span>
+  <span class="stat xp" title="XP"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12l4 6-10 12L2 9z" fill="#3A6EA5"/><path d="M2 9h20M8 3l4 18M16 3l-4 18M6 3l2 6h8l2-6" stroke="#2B5A8C" stroke-width="1.2" fill="none"/></svg><span id="xpN">0</span></span>
+  <a class="pbs-about" href="../about.html">About</a>
+</div></header>
+<main class="wrap">
+  <div class="unit">
+    <div><div class="u">7 LESSONS</div><h1>The model layer</h1><p>How a Power BI semantic model is built: bronze, silver and gold layers, facts and dimensions, relationships and measures.</p></div>
+    <a href="#guide">Guidebook</a>
+  </div>
+  <a class="unitlink" href="../02-seed/index.html">&larr; The seed project</a>
+  <div class="intro" style="margin-top:18px"><svg class="mascot" viewBox="0 0 112 108" aria-hidden="true"><ellipse cx="57" cy="101" rx="34" ry="5" fill="rgba(0,0,0,.08)"/><path d="M16 64 C12 44 26 30 44 30 C54 18 78 18 88 32 C102 38 104 62 96 76 C88 94 62 98 46 94 C28 94 18 82 16 64Z" fill="#F2B33D" stroke="#C98E1C" stroke-width="3.5" stroke-linejoin="round"/><path d="M30 46 C34 38 42 34 50 34" stroke="#FAE7B5" stroke-width="5" stroke-linecap="round" fill="none"/><path d="M78 84 L88 74 L92 80Z" fill="#DDA12E"/><path d="M24 74 L32 84 L22 82Z" fill="#DDA12E"/><path d="M96 10 l3 8 8 3 -8 3 -3 8 -3 -8 -8 -3 8 -3z" fill="#F2B33D"/><circle cx="44" cy="58" r="9" fill="#fff"/><circle cx="70" cy="58" r="9" fill="#fff"/><circle cx="46" cy="60" r="4.5" fill="#2D3439"/><circle cx="72" cy="60" r="4.5" fill="#2D3439"/><circle cx="47.5" cy="58.5" r="1.5" fill="#fff"/><circle cx="73.5" cy="58.5" r="1.5" fill="#fff"/><ellipse cx="32" cy="72" rx="6" ry="4" fill="#FF9F6B" opacity=".55"/><ellipse cx="82" cy="72" rx="6" ry="4" fill="#FF9F6B" opacity=".55"/><path d="M47 72 Q57 82 67 72" stroke="#5A4300" stroke-width="4" fill="none" stroke-linecap="round"/></svg><div class="bubble" id="greet">Hi, I'm Nugget! I get refined three times before any report sees me. Tap the first lesson to start.</div></div>
+  <div class="stats">
+    <div class="sc"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c1 4 5 6 5 11a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5 0 2 1 3 2 3 0-3-1-6 1-9.5z" fill="#D9772B"/><path d="M12 13c1 1.5 2 2.5 2 4a2 2 0 0 1-4 0c0-1.5 1-2.5 2-4z" fill="#F2B33D"/></svg><div><div class="v" id="sFire">0</div><div class="k">day streak</div></div></div>
+    <div class="sc"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12l4 6-10 12L2 9z" fill="#3A6EA5"/><path d="M2 9h20M8 3l4 18M16 3l-4 18M6 3l2 6h8l2-6" stroke="#2B5A8C" stroke-width="1.2" fill="none"/></svg><div><div class="v" id="sXP">0</div><div class="k">total XP</div></div></div>
+    <div class="sc"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8l4 3 5-7 5 7 4-3-2 11H5z" fill="#F2B33D" stroke="#C98E1C" stroke-width="1.5" stroke-linejoin="round"/></svg><div><div class="v" id="sDone">0 / 7</div><div class="k">lessons crowned</div></div></div>
+  </div>
+  <div class="path" id="path"></div>
+  <div style="text-align:center;margin-bottom:10px"><svg class="trophy" id="trophy" viewBox="0 0 64 64" aria-hidden="true"><path d="M18 8h28v14a14 14 0 0 1-28 0z" fill="#F2B33D" stroke="#C98E1C" stroke-width="3"/><path d="M18 12H8v4a10 10 0 0 0 10 10M46 12h10v4a10 10 0 0 1-10 10" fill="none" stroke="#C98E1C" stroke-width="3"/><rect x="28" y="36" width="8" height="10" fill="#C98E1C"/><rect x="18" y="46" width="28" height="8" rx="3" fill="#CD7F32"/></svg><div class="muted" id="tMsg" style="font-weight:800">Crown all seven to win the trophy</div></div>
+
+  <section id="practice">
+    <div class="snum">✦</div>
+    <h2>Practice: flashcards</h2>
+    <p>Tap the card to flip it.</p>
+    <div class="fcard" id="fc" tabindex="0" role="button" aria-label="Flip card"><div class="fin"><div class="face" id="ff"></div><div class="face b" id="fb"></div></div></div>
+    <div class="row"><button class="big-btn" id="knew">Got it +5 XP</button><button class="big-btn blue" id="learn">Still learning</button></div>
+    <p class="muted" id="fProg" style="text-align:center;margin-top:10px"></p>
+  </section>
+
+  <section id="guide">
+    <div class="snum">?</div>
+    <h2>Guidebook</h2>
+    <input class="search" id="gq" type="search" placeholder="Search terms" aria-label="Search the guidebook">
+    <dl id="gl"></dl>
+    <button class="link-btn" id="reset">Reset my progress in this browser</button>
+  </section>
+  <footer>The model layer. Table names and counts come from a real Power BI project built with a coding agent in September 2026. Values in the toy examples are illustrative. Progress is saved only in your browser.</footer>
+  <div class="pbs-footer">
+  <p class="pbs-course"><b>Conducting the agent</b> · Building a Power BI model with Claude Code</p>
+  <p class="pbs-credit">Designed and built by Liz Barnes with the assistance of Claude Code.</p>
+  <p class="pbs-licence">© 2026 Liz Barnes. Licensed under <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a>.</p>
+  <p class="pbs-links"><span class="pbs-author">Elizabeth Cecilia</span> · <a href="https://www.linkedin.com/in/liz-barnes-7365b85" target="_blank" rel="noopener">LinkedIn</a> · <a href="../about.html#work-with-me">Work with me</a> · <a href="../about.html">About</a> · <a href="../index.html">Course map</a></p>
+</div>
+</main>
+<script>
+(function(){
+  var L=[{"n": "01", "f": "three-layers/index.html", "h": "Raw in. Clean through. Model out.", "d": "Bronze, silver and gold: three passes over every table before the model sees it.", "t": "Follow one messy row through all three layers.", "i": "\u26cf\ufe0f"}, {"n": "02", "f": "only-gold-loads/index.html", "h": "Three layers. One set of tables.", "d": "Why the bronze and silver queries are in italics, and what one parameter saves you.", "t": "Switch loading on and off and watch the Fields pane.", "i": "\ud83d\udd0c"}, {"n": "03", "f": "facts-and-dimensions/index.html", "h": "Things that happened. Things you describe them by.", "d": "Fact tables hold keys and numbers. Dimensions hold the words you slice by.", "t": "Sort columns, then explore one star.", "i": "\u2b50"}, {"n": "04", "f": "filters-flow-one-way/index.html", "h": "One side filters. Many side listens.", "d": "Every relationship is one-to-many, and that decides where a slicer's filter goes.", "t": "Slice a toy model from the right and the wrong table.", "i": "\ud83d\udd3d"}, {"n": "05", "f": "measures/index.html", "h": "A measure stores a formula, not a number.", "d": "All the measures live in one home table, and each has a row in the register.", "t": "Click matrix cells and see what the measure adds up.", "i": "\ud83e\uddee"}, {"n": "06", "f": "standalone-tables/index.html", "h": "Some tables stand alone on purpose.", "d": "Four tables have no relationships, and two columns sort by a hidden order.", "t": "Draw a line you shouldn't, and watch the tooltips go blank.", "i": "\ud83c\udfdd\ufe0f"}, {"n": "07", "f": "check-it-landed/index.html", "h": "Refresh, then check. In that order.", "d": "A model change is done when Desktop has refreshed and the counts still add up.", "t": "Find the table that lost a row between layers.", "i": "\u2705"}], GL=[["Bronze layer", "The source data exactly as it arrived. Nothing is fixed here."], ["Silver layer", "Cleaned data: types set, spaces trimmed, names consistent, duplicates removed."], ["Gold layer", "Tables shaped for the model: facts, dimensions, keys and order columns."], ["Enable load", "The Power Query setting that decides whether a query becomes a model table. Off shows the name in italics."], ["Parameter", "A named value, like WorkbookPath, that many queries read, so you change it in one place."], ["Import mode", "The model keeps its own copy of the data, made at each refresh."], ["Fact table", "Records things that happened. Holds keys and numbers you add up."], ["Dimension table", "Describes the things in facts. Holds the words you slice and label by."], ["Key", "A column that joins a fact row to one row in a dimension."], ["Snowflake", "A dimension joined to another dimension, like commodity to commodity group."], ["One-to-many", "One row on the dimension side matches many rows on the fact side."], ["Filter direction", "Filters travel from the one side to the many side of a relationship."], ["Measure", "A stored formula, worked out for each cell of a visual."], ["Calculated column", "A column computed once per row at refresh, and stored."], ["Filter context", "The set of filters that applies to one cell when a measure runs."], ["Measure register", "A table with one row per measure: stage, unit, scope, period, source and status."], ["Disconnected table", "A table with no relationships, on purpose. Slicers don't filter it."], ["Sort by column", "Makes a text column sort by a number column, so stages list in process order."], ["Reconcile", "Compare row counts layer by layer to find where rows were lost or added."], ["Validator", "A script that checks the project files after every change."], ["Medallion", "The lakehouse pattern that names the bronze, silver and gold layers."], ["Direct Lake", "A Fabric storage mode that reads lakehouse tables straight into memory, without a scheduled copy."]], CROWN="<svg class=\"crown\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M3 8l4 3 5-7 5 7 4-3-2 11H5z\" fill=\"#F2B33D\" stroke=\"#C98E1C\" stroke-width=\"1.5\" stroke-linejoin=\"round\"/></svg>";
+  var KEY="cta-modelLayerProgress";
+  function blank(){return {xp:0,done:{},days:[]};}
+  function load(){try{var s=JSON.parse(localStorage.getItem(KEY));if(!s||typeof s!=="object")return blank();s.xp=s.xp||0;s.done=s.done||{};s.days=s.days||[];return s;}catch(e){return blank();}}
+  function save(s){try{localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
+  function streak(days){var n=0,d=new Date();for(;;){var k=d.toISOString().slice(0,10);if(days.indexOf(k)>=0){n++;d.setDate(d.getDate()-1);}else break;}return n;}
+  function $(s){return document.querySelector(s);}
+  var open=-1, OFF=[0,60,90,60,0,-60,-90];
+  function paint(){
+    var st=load(), done=L.filter(function(l){return st.done[l.n];}).length, next=L.findIndex(function(l){return !st.done[l.n];});
+    $("#xpN").textContent=st.xp; $("#sXP").textContent=st.xp; var f=streak(st.days); $("#fireN").textContent=f; $("#sFire").textContent=f;
+    $("#sDone").textContent=done+" / 7";
+    $("#path").innerHTML=L.map(function(l,i){
+      var cls=st.done[l.n]?"done":(i===next?"next":"");
+      return '<div class="stop" style="transform:translateX('+OFF[i]+'px)">'+(i===next?'<span class="start">'+(done?"NEXT":"START")+'</span>':'')+
+        '<button class="node '+cls+'" data-i="'+i+'" aria-expanded="'+(open===i)+'" aria-label="Lesson '+l.n+': '+l.h+'">'+l.i+(st.done[l.n]?CROWN:'')+'</button>'+
+        (open===i?'<div class="pop'+(st.done[l.n]?' done':'')+'"><b>'+l.h+'</b>'+l.d+'<span class="try">Try: '+l.t+'</span><a href="'+l.f+'">'+(st.done[l.n]?"Practise again":"Start lesson "+l.n)+'</a></div>':'')+'</div>';
+    }).join("");
+    var won=done===7; $("#trophy").classList.toggle("won",won);
+    $("#tMsg").textContent=won?"Series complete! You can explain the whole model layer.":"Crown all seven to win the trophy";
+    $("#greet").textContent=won?"You did it! From raw sheet to trusted measure.":done?"Welcome back! "+done+" of 7 crowned. The glowing lesson is next.":"Hi, I'm Nugget! I get refined three times before any report sees me. Tap the first lesson to start.";
+  }
+  $("#path").addEventListener("click",function(e){e.stopPropagation();var b=e.target.closest(".node");if(!b)return;var i=+b.dataset.i;open=open===i?-1:i;paint();});
+  document.addEventListener("click",function(e){if(open>=0&&!e.target.closest("#path")){open=-1;paint();}});
+  paint();
+  var fi=0,known=0,seen=0,order=GL.map(function(g,i){return i;}).sort(function(){return Math.random()-.5;});
+  function card(){var g=GL[order[fi%GL.length]];$("#ff").textContent=g[0];$("#fb").textContent=g[1];$("#fc").classList.remove("flip");$("#fProg").textContent=known+" known, "+Math.min(seen,GL.length)+" of "+GL.length+" seen";}
+  function flip(){$("#fc").classList.toggle("flip");}
+  $("#fc").addEventListener("click",flip);
+  $("#fc").addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();flip();}});
+  $("#knew").addEventListener("click",function(){known++;seen++;var st=load();st.xp+=5;var t=new Date().toISOString().slice(0,10);if(st.days.indexOf(t)<0)st.days.push(t);save(st);fi++;card();paint();});
+  $("#learn").addEventListener("click",function(){seen++;fi++;card();});
+  card();
+  var gl=$("#gl"),q=$("#gq");
+  GL.slice().sort(function(a,b){return a[0].localeCompare(b[0]);}).forEach(function(g){var dt=document.createElement("dt");dt.textContent=g[0];var dd=document.createElement("dd");dd.textContent=g[1];gl.appendChild(dt);gl.appendChild(dd);});
+  q.addEventListener("input",function(){var v=q.value.trim().toLowerCase();gl.querySelectorAll("dt").forEach(function(dt){var dd=dt.nextElementSibling,on=!v||(dt.textContent+" "+dd.textContent).toLowerCase().indexOf(v)>=0;dt.hidden=!on;dd.hidden=!on;});});
+  $("#reset").addEventListener("click",function(){if(confirm("Reset your XP, streak and crowns in this browser?")){try{localStorage.removeItem(KEY);}catch(e){}open=-1;paint();}});
+})();
+</script>
+</body>
+</html>

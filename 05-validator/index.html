@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>The validator · Conducting the agent</title>
+<meta name="description" content="The script that checks a coding agent&#x27;s work, and the guardrails around it.">
+<link rel="stylesheet" href="../assets/css/course.css">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet"><style>
+:root{
+  --bg:#FFFFFF; --soft:#F3F5F6; --panel:#FFFFFF; --ink:#2D3439; --slate:#5E6870; --line:#DEE3E6;
+  --green:#0F7C72; --green-d:#0A5C55; --green-l:#D3F1EC;
+  --blue:#3A6EA5; --blue-d:#2B5A8C; --blue-l:#E3ECF6;
+  --gold:#F2B33D; --gold-d:#C98E1C; --gold-l:#FBF1D9;
+  --red:#C8413A; --red-d:#A8322C; --red-l:#FAE2DF;
+  --orange:#D9772B; --purple:#9466C4; --purple-d:#7A50AE; --purple-l:#EFE7F8;
+  --deep:#1E3A5F; --console:#0F2530; --console-ink:#D8EEF7;
+  --mono: ui-monospace,"Cascadia Code",Consolas,"Roboto Mono",monospace;
+  --sans: "Nunito","Varela Round",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --hdr:rgba(255,255,255,.94);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12191D; --soft:#1B252A; --panel:#1B252A; --ink:#EEF2F4; --slate:#AAB5BC; --line:#36434B;
+  --green-l:#123A36; --blue-l:#1C2E45; --gold-l:#3A2F17; --red-l:#4A211E; --purple-l:#2F2440;
+  --hdr:rgba(18,25,29,.94); --deep:#3A6EA5; --console:#0A171D;
+}}
+:root[data-theme="dark"]{
+  --bg:#12191D; --soft:#1B252A; --panel:#1B252A; --ink:#EEF2F4; --slate:#AAB5BC; --line:#36434B;
+  --green-l:#123A36; --blue-l:#1C2E45; --gold-l:#3A2F17; --red-l:#4A211E; --purple-l:#2F2440;
+  --hdr:rgba(18,25,29,.94); --deep:#3A6EA5; --console:#0A171D;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-behavior:smooth;scroll-padding-top:calc(70px + env(safe-area-inset-top,0px))}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17.5px;line-height:1.6;font-weight:600}
+.wrap{max-width:760px;margin:0 auto;padding:0 20px}
+:focus-visible{outline:3px solid var(--blue);outline-offset:3px;border-radius:8px}
+
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;background:var(--hdr);backdrop-filter:blur(8px);border-bottom:2px solid var(--line)}
+.bar{display:flex;align-items:center;gap:14px;height:62px}
+.home{display:flex;align-items:center;gap:6px;text-decoration:none;color:var(--ink);font-weight:900}
+.home svg{width:34px;height:34px}
+.pbar{flex:1;height:16px;border-radius:99px;background:var(--line);overflow:hidden}
+.pbar i{display:block;height:100%;width:0;background:var(--green);border-radius:99px;transition:width .4s;box-shadow:inset 0 -4px 0 rgba(0,0,0,.12)}
+.stat{display:flex;align-items:center;gap:4px;font-weight:900}
+.stat svg{width:22px;height:22px}
+.fire{color:var(--orange)} .xp{color:var(--gold-d)}
+.glossbtn{display:flex;align-items:center;gap:4px;border:2px solid var(--line);border-bottom-width:4px;background:var(--panel);color:var(--purple-d);font:inherit;font-weight:900;font-size:14px;border-radius:12px;padding:4px 10px;cursor:pointer}
+.glossbtn svg{width:20px;height:20px}
+.xp.pop{animation:pop .5s}
+@keyframes pop{50%{transform:scale(1.35)}}
+
+.hero{padding:34px 0 10px}
+.eyebrow{font-weight:800;color:var(--slate);font-size:14.5px}
+h1{font-size:clamp(30px,6vw,44px);line-height:1.1;margin:6px 0 18px;font-weight:900;color:var(--ink)}
+h2{font-size:26px;line-height:1.2;margin:0 0 10px;font-weight:900}
+.intro{display:flex;gap:16px;align-items:center}
+.intro svg.mascot{width:108px;height:108px;flex:none}
+.bubble{position:relative;border:2px solid var(--line);border-radius:18px;padding:14px 18px;font-size:18px;background:var(--panel)}
+.bubble::before{content:"";position:absolute;left:-10px;top:50%;width:16px;height:16px;background:var(--panel);border-left:2px solid var(--line);border-bottom:2px solid var(--line);transform:translateY(-50%) rotate(45deg)}
+.byline{color:var(--slate);font-size:14.5px;margin:14px 0 0}
+
+section.unit{margin:34px 0;padding:24px;border:2px solid var(--line);border-radius:22px;background:var(--panel)}
+.unit-tag{display:inline-block;font-weight:900;font-size:13.5px;border-radius:10px;padding:2px 10px;margin-bottom:10px;background:var(--blue-l);color:var(--blue-d)}
+.unit-tag.predict{background:var(--gold-l);color:var(--gold-d)}
+.unit-tag.play{background:var(--green-l);color:var(--green-d)}
+.unit-tag.check{background:var(--purple-l);color:var(--purple-d)}
+p{margin:0 0 14px}
+
+.term{font:inherit;font-weight:800;color:var(--purple-d);background:none;border:0;padding:0;cursor:pointer;border-bottom:2.5px dotted var(--purple);border-radius:0;line-height:inherit}
+.term:hover{background:var(--purple-l)}
+.pop-card{position:absolute;z-index:60;max-width:330px;background:var(--panel);border:2px solid var(--purple);border-bottom-width:5px;border-radius:16px;padding:14px 16px 12px;font-size:15.5px;line-height:1.5;box-shadow:0 10px 30px rgba(0,0,0,.14)}
+.pop-card h3{margin:0 0 4px;font-size:17px;font-weight:900;color:var(--purple-d)}
+.pop-card p{margin:0 0 8px}
+.pop-card .all{background:none;border:0;padding:0;font:inherit;font-weight:900;color:var(--blue-d);cursor:pointer;font-size:14px}
+@media (max-width:640px){.pop-card{position:fixed;left:12px!important;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));top:auto!important;max-width:none}}
+
+.drawer{position:fixed;inset:0;z-index:80;display:flex;justify-content:flex-end;background:rgba(0,0,0,.35)}
+.drawer[hidden]{display:none}
+.drawer-in{width:min(420px,100%);height:100%;background:var(--bg);padding:calc(18px + env(safe-area-inset-top,0px)) 20px calc(18px + env(safe-area-inset-bottom,0px));overflow:auto}
+.drawer-in h2{display:flex;justify-content:space-between;align-items:center}
+.x{border:0;background:none;font-size:28px;line-height:1;color:var(--slate);cursor:pointer;font-weight:900}
+.drawer input{width:100%;font:inherit;padding:10px 14px;border:2px solid var(--line);border-radius:14px;background:var(--soft);color:var(--ink);margin-bottom:14px}
+.gl-item{padding:12px 0;border-bottom:2px solid var(--line)}
+.gl-item b{color:var(--purple-d);font-weight:900}
+.gl-item p{margin:2px 0 0;font-size:15.5px}
+.gl-item.flash{animation:flash 1.2s}
+@keyframes flash{30%{background:var(--purple-l)}}
+
+.choices{display:grid;gap:10px;margin:14px 0 0}
+.choices.two{grid-template-columns:1fr 1fr;margin:0}
+.choice{font:inherit;font-weight:800;text-align:left;padding:13px 16px;border-radius:16px;border:2px solid var(--line);border-bottom-width:5px;background:var(--panel);color:var(--ink);cursor:pointer;transition:transform .08s}
+.choice:hover:not(:disabled){background:var(--soft)}
+.choice:active:not(:disabled){transform:translateY(3px);border-bottom-width:2px}
+.choice:disabled{cursor:default}
+.choice.right{border-color:var(--green);background:var(--green-l);color:var(--green-d)}
+.choice.wrong{border-color:var(--red);background:var(--red-l);color:var(--red-d)}
+.choice.reveal{border-color:var(--green);border-style:dashed}
+.choices.two .choice{text-align:center;padding:9px 10px}
+.verdict{margin-top:12px;border-radius:16px;padding:0;font-size:16.5px;display:flex;gap:12px;align-items:center}
+.verdict:empty{display:none}
+.verdict svg{width:52px;height:52px;flex:none}
+.verdict.ok{background:var(--green-l);color:var(--green-d);padding:12px 14px}
+.verdict.bad{background:var(--red-l);color:var(--red-d);padding:12px 14px}
+.verdict span{color:var(--ink)}
+.verdict b{font-weight:900}
+
+.rule{margin:18px 0 0;border-radius:18px;background:var(--blue-l);padding:14px 18px;border-left:6px solid var(--blue)}
+.rule b{color:var(--deep);font-weight:900}
+
+/* harness ring */
+.ring-wrap{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px;align-items:center}
+svg.ring{width:100%;height:auto;display:block}
+.node{cursor:pointer}
+.node circle.b{fill:var(--panel);stroke:var(--line);stroke-width:4;transition:fill .2s,stroke .2s}
+.node text{font-family:var(--sans);font-weight:900;font-size:13.5px;fill:var(--ink);text-anchor:middle}
+.node .ico{font-size:26px}
+.node.on circle.b{fill:var(--blue-l);stroke:var(--blue)}
+.node.val circle.b{stroke:var(--green)}
+.node.val.on circle.b{fill:var(--green-l)}
+.node:focus{outline:none}
+.node:focus-visible circle.b{stroke:var(--purple);stroke-width:6}
+.ringpath{fill:none;stroke:var(--line);stroke-width:5;stroke-dasharray:2 12;stroke-linecap:round}
+#runner{fill:var(--gold);stroke:var(--gold-d);stroke-width:3}
+.station{border:2px solid var(--line);border-radius:18px;padding:16px;min-height:170px;background:var(--soft)}
+.station h3{margin:0 0 6px;font-size:19px;font-weight:900}
+.station .step{font-size:13.5px;font-weight:900;color:var(--slate)}
+.big-btn{font:inherit;font-weight:900;font-size:17px;color:#fff;background:var(--green);border:0;border-bottom:5px solid var(--green-d);border-radius:16px;padding:12px 24px;cursor:pointer}
+.big-btn:active{transform:translateY(3px);border-bottom-width:2px}
+.big-btn.blue{background:var(--blue);border-bottom-color:var(--blue-d)}
+.big-btn:disabled{background:var(--line);border-bottom-color:var(--line);color:var(--slate);cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
+
+/* sort */
+.sortrow{display:grid;grid-template-columns:1fr 230px;gap:12px;align-items:center;padding:12px 0;border-bottom:2px solid var(--line)}
+.sortrow:last-of-type{border-bottom:0}
+.sortrow .verdict{grid-column:1/-1;margin-top:0}
+
+.choices.three{grid-template-columns:1fr 1fr 1fr;margin:0}
+.choices.three .choice{text-align:center;padding:9px 6px;font-size:15px}
+.sortrow.w3{grid-template-columns:1fr 330px}
+.hint{color:var(--slate);font-size:15px}
+.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+/* simulator */
+.breaks{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.brk{font:inherit;text-align:left;border:2px solid var(--line);border-bottom-width:5px;border-radius:16px;padding:12px 14px;background:var(--panel);color:var(--ink);cursor:pointer;display:flex;gap:10px;align-items:flex-start}
+.brk .e{font-size:24px;line-height:1}
+.brk b{display:block;font-weight:900}
+.brk small{color:var(--slate);font-size:14px}
+.brk[aria-pressed="true"]{border-color:var(--blue);background:var(--blue-l)}
+.brk.tried::after{content:"✓";margin-left:auto;color:var(--green-d);font-weight:900}
+.console{background:var(--console);color:var(--console-ink);font-family:var(--mono);font-size:14px;line-height:1.55;border-radius:16px;padding:14px 16px;min-height:150px;overflow-x:auto;white-space:pre-wrap;word-break:break-word;margin-top:12px}
+.console .p{color:#9DBCE0}
+.console .ok{color:#6CC9BE}
+.console .f{color:#EC958D}
+.console .w{color:#F4C65A}
+.console .dim{color:#8AA3AF}
+.predict-q{font-weight:800;margin:14px 0 0}
+
+.recap{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.recap li{display:flex;gap:12px;align-items:flex-start;border:2px solid var(--line);border-radius:16px;padding:12px 14px}
+.recap li .n{flex:none;width:30px;height:30px;border-radius:50%;background:var(--gold);color:#5A4300;font-weight:900;display:grid;place-items:center}
+
+.finish{text-align:center;margin:30px 0 8px}
+.done{position:fixed;inset:0;z-index:90;display:grid;place-items:center;background:rgba(0,0,0,.45);padding:20px}
+.done[hidden]{display:none}
+.done-card{background:var(--bg);border-radius:24px;padding:26px;max-width:400px;width:100%;text-align:center}
+.done-card svg{width:120px;height:120px}
+.done-card h2{color:var(--gold-d);margin:6px 0 16px}
+.done-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.ds{border-radius:14px;border:2px solid;overflow:hidden}
+.ds .k{font-size:12px;font-weight:900;color:#fff;padding:4px}
+.ds .v{font-size:22px;font-weight:900;padding:8px 4px}
+.ds.xp{border-color:var(--gold)} .ds.xp .k{background:var(--gold);color:#5A4300} .ds.xp .v{color:var(--gold-d)}
+.ds.acc{border-color:var(--green)} .ds.acc .k{background:var(--green)} .ds.acc .v{color:var(--green-d)}
+.ds.fire{border-color:var(--orange)} .ds.fire .k{background:var(--orange)} .ds.fire .v{color:var(--orange)}
+.link-btn{display:block;margin:14px auto 0;background:none;border:0;font-family:var(--sans);font-weight:800;font-size:15px;color:var(--blue-d);cursor:pointer}
+.confetti{position:fixed;top:-12px;width:10px;height:14px;z-index:95;pointer-events:none;border-radius:2px;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(720deg)}}
+nav.pn{padding:26px 0 0;display:flex;justify-content:space-between;gap:16px;font-weight:800;font-size:14.5px}
+nav.pn a{color:var(--blue-d);text-decoration:none;max-width:48%}
+footer{color:var(--slate);font-size:13.5px;padding:24px 0 40px}
+@media (max-width:640px){
+  body{font-size:16.5px}
+  .bar{gap:10px}
+  .home span,.glossbtn span{display:none}
+  .intro svg.mascot{width:80px;height:80px}
+  .bubble{font-size:16.5px}
+  section.unit{padding:18px}
+  .ring-wrap{grid-template-columns:1fr}
+  .sortrow,.sortrow.w3{grid-template-columns:1fr}
+  .breaks{grid-template-columns:1fr}
+}
+
+.path{display:grid;gap:26px;margin:30px 0 10px}
+.stop{display:grid;grid-template-columns:1fr;justify-items:center;transform:translateX(var(--x))}
+.pn-node{position:relative;width:78px;height:72px;border-radius:50%;display:grid;place-items:center;text-decoration:none;background:var(--line);box-shadow:0 7px 0 #CFCFCF;color:var(--slate);font-weight:900;font-size:26px;transition:transform .1s}
+.pn-node:active{transform:translateY(5px);box-shadow:0 2px 0 #CFCFCF}
+.pn-node .ck{display:none}
+.pn-node.next{background:var(--green);box-shadow:0 7px 0 var(--green-d);color:#fff;animation:bob 1.6s ease-in-out infinite}
+.pn-node.done{background:var(--gold);box-shadow:0 7px 0 var(--gold-d);color:#5A4300}
+.pn-node.done .num{display:none} .pn-node.done .ck{display:block}
+@keyframes bob{50%{transform:translateY(-5px)}}
+.pn-lbl{text-align:center;max-width:280px;margin-top:12px;font-size:14.5px;line-height:1.4}
+.pn-lbl b{display:block;font-size:16.5px}
+.pn-lbl span{color:var(--slate)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0}
+.gl-inline{columns:2;column-gap:28px;margin-top:6px}
+.gl-inline .gl-item{break-inside:avoid}
+.reset{background:none;border:0;font:inherit;color:var(--slate);font-size:14px;cursor:pointer;text-decoration:underline}
+@media (max-width:640px){.stop{transform:translateX(calc(var(--x) * .5))}.gl-inline{columns:1}}
+</style><style>/* course build */
+/* keep the lesson path inside a phone screen */
+.path{overflow-x:clip}
+@media (max-width:480px){.stop{transform:translateX(calc(var(--x) * .25))}.pn-lbl{max-width:min(240px,calc(100vw - 100px))}}
+</style>
+<style id="cta-palette">:root{--gold-d:#8A6000;--orange:#B5571A;--ember-ink:#9A4A0C;--purple-d:#6E449E;}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--green-d:#5CCABD;--blue:#7FA8DA;--blue-d:#8DB4E2;--gold-d:#E9C46A;--red:#F07A70;--red-d:#F09088;--purple-d:#C3A6E8;--orange:#E8935A;--ember-ink:#E8935A;--deep:#8DB4E2;}:root:not([data-theme="light"]) .pop{background:#24476E}:root:not([data-theme="light"]) .xpfly,:root:not([data-theme="light"]) .bar .home{color:var(--green-d)}:root:not([data-theme="light"]) .series a.here,:root:not([data-theme="light"]) .step .num,:root:not([data-theme="light"]) .node .dot,:root:not([data-theme="light"]) .pbtn,:root:not([data-theme="light"]) .snum,:root:not([data-theme="light"]) .loop .n{color:#12191D}}:root[data-theme="dark"]{--green-d:#5CCABD;--blue:#7FA8DA;--blue-d:#8DB4E2;--gold-d:#E9C46A;--red:#F07A70;--red-d:#F09088;--purple-d:#C3A6E8;--orange:#E8935A;--ember-ink:#E8935A;--deep:#8DB4E2;}:root[data-theme="dark"] .pop{background:#24476E}:root[data-theme="dark"] .xpfly,:root[data-theme="dark"] .bar .home{color:var(--green-d)}:root[data-theme="dark"] .series a.here,:root[data-theme="dark"] .step .num,:root[data-theme="dark"] .node .dot,:root[data-theme="dark"] .pbtn,:root[data-theme="dark"] .snum,:root[data-theme="dark"] .loop .n{color:#12191D}</style>
+</head>
+<body data-lesson="index">
+<header><div class="wrap bar">
+  <a class="home" href="index.html" aria-label="Series overview"><svg class="" viewBox="0 0 114 114" aria-hidden="true"><ellipse cx="57" cy="108" rx="30" ry="4" fill="#000" opacity=".08"/><path d="M57 6 L100 20 V54 C100 82 82 98 57 106 C32 98 14 82 14 54 V20 Z" fill="#2B5A8C"/><path d="M57 6 L100 20 V50 C100 78 82 94 57 102 C32 94 14 78 14 50 V20 Z" fill="#3A6EA5"/><path d="M24 26 L57 15 L90 26" stroke="#fff" stroke-opacity=".45" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="43" cy="52" r="10" fill="#fff"/><circle cx="71" cy="52" r="10" fill="#fff"/><circle cx="44" cy="54" r="5" fill="#0B3A5C"/><circle cx="72" cy="54" r="5" fill="#0B3A5C"/><circle cx="45" cy="52" r="1.6" fill="#fff"/><circle cx="73" cy="52" r="1.6" fill="#fff"/><path d="M46 70 Q57 81 68 70" stroke="#0B3A5C" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="90" cy="88" r="13" fill="#0F7C72" stroke="#fff" stroke-width="3"/><path d="M84 88 L88.5 92.5 L96.5 83.5" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Validator</span></a>
+  <div style="flex:1"></div>
+  <span class="stat fire" title="Day streak"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c1 4 5 6 5 11a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5 0 2 1 3 2 3 0-4-1-6 1-9.5z" fill="#D9772B"/><path d="M12 12c.6 2 2.5 2.6 2.5 4.5a2.5 2.5 0 0 1-5 0c0-1.3.8-2 1.5-2.6.2 1 .6 1.4 1 1.4 0-1.2-.4-2 0-3.3z" fill="#F2B33D"/></svg><span id="fireN">0</span></span>
+  <span class="stat xp" id="xpStat" title="XP"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12l4 6-10 12L2 9z" fill="#F2B33D"/><path d="M6 3l6 18L2 9zM18 3l-6 18L22 9z" fill="#C98E1C"/><path d="M2 9h20" stroke="#FBF1D9" stroke-width="1.2"/></svg><span id="xpN">0</span></span>
+  <button class="glossbtn" id="glossBtn" type="button" aria-label="Open the glossary"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7a3 3 0 0 1 3 3v13a2.5 2.5 0 0 0-2.5-2.5H4z" fill="#9466C4"/><path d="M20 4h-5a3 3 0 0 0-3 3v13a2.5 2.5 0 0 1 2.5-2.5H20z" fill="#7A50AE"/></svg><span>Glossary</span></button>
+  <a class="pbs-about" href="../about.html">About</a>
+</div></header>
+<main class="wrap">
+  <div class="hero">
+    <div class="eyebrow">A series of 7 short lessons</div>
+    <h1>The validator: how an agent's work gets checked</h1>
+    <div class="intro"><svg class="mascot" viewBox="0 0 114 114" aria-hidden="true"><ellipse cx="57" cy="108" rx="30" ry="4" fill="#000" opacity=".08"/><path d="M57 6 L100 20 V54 C100 82 82 98 57 106 C32 98 14 82 14 54 V20 Z" fill="#2B5A8C"/><path d="M57 6 L100 20 V50 C100 78 82 94 57 102 C32 94 14 78 14 50 V20 Z" fill="#3A6EA5"/><path d="M24 26 L57 15 L90 26" stroke="#fff" stroke-opacity=".45" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="43" cy="52" r="10" fill="#fff"/><circle cx="71" cy="52" r="10" fill="#fff"/><circle cx="44" cy="54" r="5" fill="#0B3A5C"/><circle cx="72" cy="54" r="5" fill="#0B3A5C"/><circle cx="45" cy="52" r="1.6" fill="#fff"/><circle cx="73" cy="52" r="1.6" fill="#fff"/><path d="M46 70 Q57 81 68 70" stroke="#0B3A5C" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="90" cy="88" r="13" fill="#0F7C72" stroke="#fff" stroke-width="3"/><path d="M84 88 L88.5 92.5 L96.5 83.5" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="bubble">An AI coding agent can rewrite a hundred files in two minutes. This series is about the script that checks them, and the harness around it.</div></div>
+    <p class="byline">with <b>Elizabeth Cecilia</b>. About an hour in total. Built on a real Power BI project made with Claude Code; the examples use a toy report.</p>
+  </div>
+  <div class="stats">
+    <div class="ds xp"><div class="k">XP</div><div class="v" id="sXP">0</div></div>
+    <div class="ds acc"><div class="k">Lessons</div><div class="v" id="sDone">0/7</div></div>
+    <div class="ds fire"><div class="k">Streak</div><div class="v" id="sFire">0</div></div>
+  </div>
+  <div class="path"><div class="stop" style="--x:0px"><a class="pn-node" href="what-a-validator-is/index.html" data-n="01" aria-label="Lesson 1: What a validator is"><span class="num">1</span><span class="ck" aria-hidden="true">✓</span></a><div class="pn-lbl"><b>What a validator is</b><span>The agent writes; a separate script checks. Break a toy report on purpose.</span></div></div><div class="stop" style="--x:70px"><a class="pn-node" href="why-guardrails/index.html" data-n="02" aria-label="Lesson 2: Why agents need guardrails"><span class="num">2</span><span class="ck" aria-hidden="true">✓</span></a><div class="pn-lbl"><b>Why agents need guardrails</b><span>Before and after guardrails, and blast radius.</span></div></div><div class="stop" style="--x:110px"><a class="pn-node" href="what-it-checks/index.html" data-n="03" aria-label="Lesson 3: What it checks"><span class="num">3</span><span class="ck" aria-hidden="true">✓</span></a><div class="pn-lbl"><b>What it checks</b><span>1,533 checks in 22 families, and the ones that don't count.</span></div></div><div class="stop" style="--x:70px"><a class="pn-node" href="where-it-sits/index.html" data-n="04" aria-label="Lesson 4: Where it sits in the loop"><span class="num">4</span><span class="ck" aria-hidden="true">✓</span></a><div class="pn-lbl"><b>Where it sits in the loop</b><span>Seed, propose, stop, build, validate, look, commit.</span></div></div><div class="stop" style="--x:0px"><a class="pn-node" href="reading-a-failure/index.html" data-n="05" aria-label="Lesson 5: Reading a failure"><span class="num">5</span><span class="ck" aria-hidden="true">✓</span></a><div class="pn-lbl"><b>Reading a failure</b><span>Anatomy of a FAIL line, cascades, and fix forward or roll back.</span></div></div><div class="stop" style="--x:-70px"><a class="pn-node" href="what-it-cant-see/index.html" data-n="06" aria-label="Lesson 6: What it can't see"><span class="num">6</span><span class="ck" aria-hidden="true">✓</span></a><div class="pn-lbl"><b>What it can't see</b><span>False negatives, blind spots, and who owns each gap.</span></div></div><div class="stop" style="--x:-110px"><a class="pn-node" href="spot-the-missing-guardrail/index.html" data-n="07" aria-label="Lesson 7: Spot the missing guardrail"><span class="num">7</span><span class="ck" aria-hidden="true">✓</span></a><div class="pn-lbl"><b>Spot the missing guardrail</b><span>Capstone: six incidents, one missing guardrail each.</span></div></div></div>
+  <section class="unit">
+    <span class="unit-tag check">Glossary</span>
+    <h2>The words in this series</h2>
+    <p>Terms like <button type="button" class="term" data-t="harness">harness</button>, <button type="button" class="term" data-t="guardrail">guardrail</button> and <button type="button" class="term" data-t="hitl">human in the loop</button> are underlined in every lesson. Tap one for its meaning, or read them all here.</p>
+    <div class="gl-inline" id="glInline"></div>
+  </section>
+  <footer>Progress is saved in your own browser only. <button class="reset" id="reset" type="button">Reset progress</button></footer>
+  <div class="pbs-footer">
+  <p class="pbs-course"><b>Conducting the agent</b> · Building a Power BI model with Claude Code</p>
+  <p class="pbs-credit">Designed and built by Liz Barnes with the assistance of Claude Code.</p>
+  <p class="pbs-licence">© 2026 Liz Barnes. Licensed under <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a>.</p>
+  <p class="pbs-links"><span class="pbs-author">Elizabeth Cecilia</span> · <a href="https://www.linkedin.com/in/liz-barnes-7365b85" target="_blank" rel="noopener">LinkedIn</a> · <a href="../about.html#work-with-me">Work with me</a> · <a href="../about.html">About</a> · <a href="../index.html">Course map</a></p>
+</div>
+</main>
+<div class="drawer" id="drawer" hidden><div class="drawer-in" role="dialog" aria-label="Glossary">
+  <h2>Glossary <button class="x" id="glClose" type="button" aria-label="Close the glossary">&times;</button></h2>
+  <input id="glSearch" type="search" placeholder="Search terms" aria-label="Search terms">
+  <div id="glList"></div>
+</div></div>
+<script>
+(function(){
+  var $=function(s,r){return (r||document).querySelector(s)}, $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+  var KEY="cta-validator-series-progress", GL={"agent": ["Agent", "An AI model that takes actions, not just answers: it reads files, runs commands and edits code, step by step towards a goal. In this series the agent is Claude Code."], "harness": ["Harness", "Everything around the agent that steers and checks its work: its instructions, the tools it may use, the stop points, the validator and version control. The agent does the pulling; the harness decides where the pull goes."], "guardrail": ["Guardrail", "A rule or check that stops a wrong action, or catches a wrong result, whatever the agent intended. Some act before (permissions, stop points); some act after (the validator)."], "validator": ["Validator", "A script that reads the agent's output and checks it against the spec. It only reads, writes nothing, and ends with pass or fail."], "spec": ["Spec", "The written description of what should exist: tables, columns, relationships, pages, visuals. The validator checks the files against it."], "ground-truth": ["Ground truth", "The reference you trust over anything the agent says about its own work. Here that's the spec, plus a seed project that Power BI Desktop wrote itself."], "deterministic": ["Deterministic", "Same input, same output, every time. Run the validator twice on the same files and you get the same verdict."], "probabilistic": ["Probabilistic", "The output can differ between runs, even for the same request. Language models work this way, which is why their work needs checking."], "hitl": ["Human in the loop", "A person approves at fixed points before the agent carries on. The agent proposes; the human decides."], "stop-point": ["Stop point", "A place in the workflow where the agent must stop and wait for a go-ahead. Also called a checkpoint."], "tool-call": ["Tool call", "One action the agent takes through a tool: read a file, run a command, write an edit. An agent's work is a chain of tool calls."], "exit-code": ["Exit code", "The number a program hands back when it finishes. 0 means success; anything else means failure. Other tools can act on it without reading the text."], "invariant": ["Invariant", "Something that must be true after every change. For example: every information button sits in a group with exactly one tile."], "regression": ["Regression", "Something that used to work and broke because of a later change."], "rollback": ["Rollback", "Going back to the last good version. Here, git does it."], "auto-mode": ["Auto mode", "A setting that lets the agent run some actions without asking first. A classifier decides which actions are safe enough."], "blast-radius": ["Blast radius", "How much damage one wrong action can do. Read-only tools have a small one; tools that delete or overwrite have a large one."], "false-negative": ["False negative", "A check that passes when something is actually wrong. A pink tile passing a validator that never looks at colour is a false negative."], "false-positive": ["False positive", "A check that fails when nothing is actually wrong. Too many of these and people stop trusting the validator."], "coverage": ["Coverage", "How much of what could go wrong the checks actually look at. High coverage doesn't mean total coverage."], "cascade": ["Cascade", "One cause, many failures. Delete one column and every check that depends on it fails too. Fix the first cause, not each symptom."], "fail-only": ["Fail-only check", "A check that prints nothing when things are fine and a FAIL line when they aren't. It guards something but adds nothing to the pass count."], "fix-forward": ["Fix forward", "Correcting a failure with a new change, rather than rolling back. Good when the cause is small and clear."], "permissions": ["Permissions", "What the agent is allowed to do without asking: which folders it can write, which commands it can run. A guardrail that acts before anything happens."], "eval": ["Eval", "A test of how well a model performs across many tasks. Not the same as a validator, which checks one output from one run."]}, MOODS={"happy": "<svg class=\"\" viewBox=\"0 0 114 114\" aria-hidden=\"true\"><ellipse cx=\"57\" cy=\"108\" rx=\"30\" ry=\"4\" fill=\"#000\" opacity=\".08\"/><path d=\"M57 6 L100 20 V54 C100 82 82 98 57 106 C32 98 14 82 14 54 V20 Z\" fill=\"#2B5A8C\"/><path d=\"M57 6 L100 20 V50 C100 78 82 94 57 102 C32 94 14 78 14 50 V20 Z\" fill=\"#3A6EA5\"/><path d=\"M24 26 L57 15 L90 26\" stroke=\"#fff\" stroke-opacity=\".45\" stroke-width=\"5\" fill=\"none\" stroke-linecap=\"round\"/><circle cx=\"43\" cy=\"52\" r=\"10\" fill=\"#fff\"/><circle cx=\"71\" cy=\"52\" r=\"10\" fill=\"#fff\"/><circle cx=\"44\" cy=\"54\" r=\"5\" fill=\"#0B3A5C\"/><circle cx=\"72\" cy=\"54\" r=\"5\" fill=\"#0B3A5C\"/><circle cx=\"45\" cy=\"52\" r=\"1.6\" fill=\"#fff\"/><circle cx=\"73\" cy=\"52\" r=\"1.6\" fill=\"#fff\"/><path d=\"M46 70 Q57 81 68 70\" stroke=\"#0B3A5C\" stroke-width=\"4\" fill=\"none\" stroke-linecap=\"round\"/><circle cx=\"90\" cy=\"88\" r=\"13\" fill=\"#0F7C72\" stroke=\"#fff\" stroke-width=\"3\"/><path d=\"M84 88 L88.5 92.5 L96.5 83.5\" stroke=\"#fff\" stroke-width=\"3.5\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>", "sad": "<svg class=\"\" viewBox=\"0 0 114 114\" aria-hidden=\"true\"><ellipse cx=\"57\" cy=\"108\" rx=\"30\" ry=\"4\" fill=\"#000\" opacity=\".08\"/><path d=\"M57 6 L100 20 V54 C100 82 82 98 57 106 C32 98 14 82 14 54 V20 Z\" fill=\"#2B5A8C\"/><path d=\"M57 6 L100 20 V50 C100 78 82 94 57 102 C32 94 14 78 14 50 V20 Z\" fill=\"#3A6EA5\"/><path d=\"M24 26 L57 15 L90 26\" stroke=\"#fff\" stroke-opacity=\".45\" stroke-width=\"5\" fill=\"none\" stroke-linecap=\"round\"/><circle cx=\"43\" cy=\"52\" r=\"10\" fill=\"#fff\"/><circle cx=\"71\" cy=\"52\" r=\"10\" fill=\"#fff\"/><circle cx=\"44\" cy=\"54\" r=\"5\" fill=\"#0B3A5C\"/><circle cx=\"72\" cy=\"54\" r=\"5\" fill=\"#0B3A5C\"/><circle cx=\"45\" cy=\"52\" r=\"1.6\" fill=\"#fff\"/><circle cx=\"73\" cy=\"52\" r=\"1.6\" fill=\"#fff\"/><path d=\"M36 40 L47 45 M78 40 L67 45\" stroke=\"#0B3A5C\" stroke-width=\"3.5\" stroke-linecap=\"round\"/><path d=\"M47 76 Q57 67 67 76\" stroke=\"#0B3A5C\" stroke-width=\"4\" fill=\"none\" stroke-linecap=\"round\"/><circle cx=\"90\" cy=\"88\" r=\"13\" fill=\"#0F7C72\" stroke=\"#fff\" stroke-width=\"3\"/><path d=\"M84 88 L88.5 92.5 L96.5 83.5\" stroke=\"#fff\" stroke-width=\"3.5\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>", "wow": "<svg class=\"\" viewBox=\"0 0 114 114\" aria-hidden=\"true\"><ellipse cx=\"57\" cy=\"108\" rx=\"30\" ry=\"4\" fill=\"#000\" opacity=\".08\"/><path d=\"M57 6 L100 20 V54 C100 82 82 98 57 106 C32 98 14 82 14 54 V20 Z\" fill=\"#2B5A8C\"/><path d=\"M57 6 L100 20 V50 C100 78 82 94 57 102 C32 94 14 78 14 50 V20 Z\" fill=\"#3A6EA5\"/><path d=\"M24 26 L57 15 L90 26\" stroke=\"#fff\" stroke-opacity=\".45\" stroke-width=\"5\" fill=\"none\" stroke-linecap=\"round\"/><circle cx=\"43\" cy=\"52\" r=\"10\" fill=\"#fff\"/><circle cx=\"71\" cy=\"52\" r=\"10\" fill=\"#fff\"/><circle cx=\"44\" cy=\"54\" r=\"5\" fill=\"#0B3A5C\"/><circle cx=\"72\" cy=\"54\" r=\"5\" fill=\"#0B3A5C\"/><circle cx=\"45\" cy=\"52\" r=\"1.6\" fill=\"#fff\"/><circle cx=\"73\" cy=\"52\" r=\"1.6\" fill=\"#fff\"/><ellipse cx=\"57\" cy=\"73\" rx=\"6\" ry=\"7\" fill=\"#0B3A5C\"/><ellipse cx=\"57\" cy=\"76\" rx=\"3.5\" ry=\"3\" fill=\"#E8837A\"/><circle cx=\"90\" cy=\"88\" r=\"13\" fill=\"#0F7C72\" stroke=\"#fff\" stroke-width=\"3\"/><path d=\"M84 88 L88.5 92.5 L96.5 83.5\" stroke=\"#fff\" stroke-width=\"3.5\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>", "think": "<svg class=\"\" viewBox=\"0 0 114 114\" aria-hidden=\"true\"><ellipse cx=\"57\" cy=\"108\" rx=\"30\" ry=\"4\" fill=\"#000\" opacity=\".08\"/><path d=\"M57 6 L100 20 V54 C100 82 82 98 57 106 C32 98 14 82 14 54 V20 Z\" fill=\"#2B5A8C\"/><path d=\"M57 6 L100 20 V50 C100 78 82 94 57 102 C32 94 14 78 14 50 V20 Z\" fill=\"#3A6EA5\"/><path d=\"M24 26 L57 15 L90 26\" stroke=\"#fff\" stroke-opacity=\".45\" stroke-width=\"5\" fill=\"none\" stroke-linecap=\"round\"/><circle cx=\"43\" cy=\"52\" r=\"10\" fill=\"#fff\"/><circle cx=\"71\" cy=\"52\" r=\"10\" fill=\"#fff\"/><circle cx=\"46\" cy=\"50\" r=\"5\" fill=\"#0B3A5C\"/><circle cx=\"74\" cy=\"50\" r=\"5\" fill=\"#0B3A5C\"/><circle cx=\"47\" cy=\"48\" r=\"1.6\" fill=\"#fff\"/><circle cx=\"75\" cy=\"48\" r=\"1.6\" fill=\"#fff\"/><path d=\"M49 73 H65\" stroke=\"#0B3A5C\" stroke-width=\"4\" stroke-linecap=\"round\"/><circle cx=\"90\" cy=\"88\" r=\"13\" fill=\"#0F7C72\" stroke=\"#fff\" stroke-width=\"3\"/><path d=\"M84 88 L88.5 92.5 L96.5 83.5\" stroke=\"#fff\" stroke-width=\"3.5\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>"};
+  function blank(){return {xp:0,days:[],done:{},q:{}}}
+  function load(){try{var s=JSON.parse(localStorage.getItem(KEY));return s&&s.q?s:blank()}catch(e){return blank()}}
+  function save(s){try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}}
+  function today(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+  function streak(days){var set={};days.forEach(function(d){set[d]=1});var n=0,d=new Date();if(!set[today()])d.setDate(d.getDate()-1);
+    for(;;){var k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");if(set[k]){n++;d.setDate(d.getDate()-1)}else break}return n}
+  var G={st:load(),lessonXP:0,tries:0,right:0,answered:{},finished:false};
+  var L=document.body.dataset.lesson, TOT=$$("[data-q]").length;
+  function paint(){if(!$("#xpN"))return;$("#xpN").textContent=G.st.xp;$("#fireN").textContent=streak(G.st.days);
+    var tot=TOT,n=Object.keys(G.answered).length;if($("#pfill"))$("#pfill").style.width=(tot?Math.round(n/tot*100):0)+"%"}
+  function addXP(n){G.st=load();G.st.xp+=n;G.lessonXP+=n;if(G.st.days.indexOf(today())<0)G.st.days.push(today());save(G.st);paint();
+    var x=$("#xpStat");if(x)x.classList.remove("pop");void x.offsetWidth;x.classList.add("pop")}
+  function award(q,ok){if(G.answered[q])return;G.answered[q]=1;G.tries++;if(ok)G.right++;
+    var id=L+":"+q;G.st=load();if(ok&&!G.st.q[id]){G.st.q[id]=1;save(G.st);addXP(10)}else paint()}
+  window.VX={award:award,mood:function(m){return MOODS[m]}};
+
+  // multiple choice + sort rows
+  $$(".choices").forEach(function(box){
+    $$(".choice",box).forEach(function(b){b.addEventListener("click",function(){
+      if(box.dataset.locked)return;box.dataset.locked=1;
+      var ok=b.dataset.ok==="true";
+      $$(".choice",box).forEach(function(o){o.disabled=true;if(o!==b&&o.dataset.ok==="true"&&!ok)o.classList.add("reveal")});
+      b.classList.add(ok?"right":"wrong");
+      var v=box.parentNode.querySelector(".verdict[data-for='"+box.dataset.q+"']")||box.nextElementSibling;
+      if(v&&v.classList.contains("verdict")){v.className="verdict "+(ok?"ok":"bad");
+        v.innerHTML=MOODS[ok?"happy":"sad"]+"<div><b>"+(ok?"Nice!":"Not quite.")+"</b> <span>"+(b.dataset.why||"")+"</span></div>"}
+      award(box.dataset.q,ok);
+      box.dispatchEvent(new CustomEvent("answered",{detail:{ok:ok,btn:b}}));
+    })});
+  });
+
+  // glossary popup
+  var card=null,lastTerm=null;
+  function closeCard(){if(card){card.remove();card=null;if(lastTerm)lastTerm.setAttribute("aria-expanded","false")}}
+  function openCard(t){closeCard();var g=GL[t.dataset.t];if(!g)return;lastTerm=t;t.setAttribute("aria-expanded","true");
+    card=document.createElement("div");card.className="pop-card";card.setAttribute("role","dialog");card.setAttribute("aria-label",g[0]);
+    card.innerHTML="<h3>"+g[0]+"</h3><p>"+g[1]+"</p><button class='all' type='button'>All terms</button>";
+    document.body.appendChild(card);
+    var r=t.getBoundingClientRect(),w=card.offsetWidth;
+    var left=Math.max(12,Math.min(window.scrollX+r.left,window.scrollX+document.documentElement.clientWidth-w-12));
+    card.style.left=left+"px";card.style.top=(window.scrollY+r.bottom+8)+"px";
+    $(".all",card).addEventListener("click",function(){var k=t.dataset.t;closeCard();openDrawer(k)});
+    card.tabIndex=-1;card.focus({preventScroll:true})}
+  document.addEventListener("click",function(e){var t=e.target.closest(".term");if(t){e.stopPropagation();if(lastTerm===t&&card){closeCard();return}openCard(t);return}
+    if(card&&!e.target.closest(".pop-card"))closeCard()});
+  // glossary drawer
+  var dr=$("#drawer"),list=$("#glList"),search=$("#glSearch");
+  function renderList(f){f=(f||"").toLowerCase();list.innerHTML="";
+    Object.keys(GL).sort(function(a,b){return GL[a][0].localeCompare(GL[b][0])}).forEach(function(k){var g=GL[k];
+      if(f&&(g[0]+" "+g[1]).toLowerCase().indexOf(f)<0)return;
+      var d=document.createElement("div");d.className="gl-item";d.id="gl-"+k;d.innerHTML="<b>"+g[0]+"</b><p>"+g[1]+"</p>";list.appendChild(d)})}
+  function openDrawer(k){renderList("");search.value="";dr.hidden=false;
+    if(k){var el=$("#gl-"+k);if(el){el.scrollIntoView({block:"center"});el.classList.add("flash")}} search.focus({preventScroll:!!k})}
+  $("#glossBtn").addEventListener("click",function(){openDrawer()});
+  $("#glClose").addEventListener("click",function(){dr.hidden=true;$("#glossBtn").focus()});
+  dr.addEventListener("click",function(e){if(e.target===dr)dr.hidden=true});
+  search.addEventListener("input",function(){renderList(search.value)});
+  document.addEventListener("keydown",function(e){if(e.key!=="Escape")return;
+    if(card){var t=lastTerm;closeCard();t&&t.focus();return}
+    if(!dr.hidden){dr.hidden=true;$("#glossBtn").focus();return}
+    if($("#doneScreen")&&!$("#doneScreen").hidden)$("#doneScreen").hidden=true});
+
+  // finish
+  function confetti(){if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+    var cols=["#0F7C72","#3A6EA5","#F2B33D","#D9772B","#9466C4","#C8413A"];
+    for(var i=0;i<70;i++){var c=document.createElement("div");c.className="confetti";c.style.left=Math.random()*100+"vw";c.style.background=cols[i%cols.length];
+      c.style.animationDuration=(1.6+Math.random()*1.6)+"s";c.style.animationDelay=(Math.random()*.4)+"s";document.body.appendChild(c);
+      (function(c){setTimeout(function(){c.remove()},3800)})(c)}}
+  if($("#finishBtn")){$("#finishBtn").addEventListener("click",function(){
+    if(!G.finished){G.finished=true;addXP(20);G.st=load();G.st.done[L]=true;save(G.st);paint()}
+    $("#dXP").textContent=G.lessonXP;$("#dAcc").textContent=(G.tries?Math.round(G.right/G.tries*100):100)+"%";
+    $("#dFire").textContent=streak(G.st.days);$("#doneScreen").hidden=false;confetti();$("#doneGo").focus()});
+  $("#doneClose").addEventListener("click",function(){$("#doneScreen").hidden=true;$("#finishBtn").focus()});}
+  paint();
+})();
+</script>
+<script>
+(function(){
+  var KEY="cta-validator-series-progress",GL={"agent": ["Agent", "An AI model that takes actions, not just answers: it reads files, runs commands and edits code, step by step towards a goal. In this series the agent is Claude Code."], "harness": ["Harness", "Everything around the agent that steers and checks its work: its instructions, the tools it may use, the stop points, the validator and version control. The agent does the pulling; the harness decides where the pull goes."], "guardrail": ["Guardrail", "A rule or check that stops a wrong action, or catches a wrong result, whatever the agent intended. Some act before (permissions, stop points); some act after (the validator)."], "validator": ["Validator", "A script that reads the agent's output and checks it against the spec. It only reads, writes nothing, and ends with pass or fail."], "spec": ["Spec", "The written description of what should exist: tables, columns, relationships, pages, visuals. The validator checks the files against it."], "ground-truth": ["Ground truth", "The reference you trust over anything the agent says about its own work. Here that's the spec, plus a seed project that Power BI Desktop wrote itself."], "deterministic": ["Deterministic", "Same input, same output, every time. Run the validator twice on the same files and you get the same verdict."], "probabilistic": ["Probabilistic", "The output can differ between runs, even for the same request. Language models work this way, which is why their work needs checking."], "hitl": ["Human in the loop", "A person approves at fixed points before the agent carries on. The agent proposes; the human decides."], "stop-point": ["Stop point", "A place in the workflow where the agent must stop and wait for a go-ahead. Also called a checkpoint."], "tool-call": ["Tool call", "One action the agent takes through a tool: read a file, run a command, write an edit. An agent's work is a chain of tool calls."], "exit-code": ["Exit code", "The number a program hands back when it finishes. 0 means success; anything else means failure. Other tools can act on it without reading the text."], "invariant": ["Invariant", "Something that must be true after every change. For example: every information button sits in a group with exactly one tile."], "regression": ["Regression", "Something that used to work and broke because of a later change."], "rollback": ["Rollback", "Going back to the last good version. Here, git does it."], "auto-mode": ["Auto mode", "A setting that lets the agent run some actions without asking first. A classifier decides which actions are safe enough."], "blast-radius": ["Blast radius", "How much damage one wrong action can do. Read-only tools have a small one; tools that delete or overwrite have a large one."], "false-negative": ["False negative", "A check that passes when something is actually wrong. A pink tile passing a validator that never looks at colour is a false negative."], "false-positive": ["False positive", "A check that fails when nothing is actually wrong. Too many of these and people stop trusting the validator."], "coverage": ["Coverage", "How much of what could go wrong the checks actually look at. High coverage doesn't mean total coverage."], "cascade": ["Cascade", "One cause, many failures. Delete one column and every check that depends on it fails too. Fix the first cause, not each symptom."], "fail-only": ["Fail-only check", "A check that prints nothing when things are fine and a FAIL line when they aren't. It guards something but adds nothing to the pass count."], "fix-forward": ["Fix forward", "Correcting a failure with a new change, rather than rolling back. Good when the cause is small and clear."], "permissions": ["Permissions", "What the agent is allowed to do without asking: which folders it can write, which commands it can run. A guardrail that acts before anything happens."], "eval": ["Eval", "A test of how well a model performs across many tasks. Not the same as a validator, which checks one output from one run."]};
+  function load(){try{return JSON.parse(localStorage.getItem(KEY))||{xp:0,days:[],done:{}}}catch(e){return {xp:0,days:[],done:{}}}}
+  var st=load(),done=st.done||{},first=true,n=0;
+  document.querySelectorAll(".pn-node").forEach(function(a){
+    if(done[a.dataset.n]){a.classList.add("done");n++}else if(first){a.classList.add("next");first=false}});
+  document.getElementById("sXP").textContent=st.xp||0;
+  document.getElementById("sDone").textContent=n+"/7";
+  document.getElementById("sFire").textContent=document.getElementById("fireN").textContent;
+  var box=document.getElementById("glInline");
+  Object.keys(GL).sort(function(a,b){return GL[a][0].localeCompare(GL[b][0])}).forEach(function(k){
+    var d=document.createElement("div");d.className="gl-item";d.innerHTML="<b>"+GL[k][0]+"</b><p>"+GL[k][1]+"</p>";box.appendChild(d)});
+  document.getElementById("reset").addEventListener("click",function(){if(confirm("Reset your XP, streak and lesson progress?")){try{localStorage.removeItem(KEY)}catch(e){}location.reload()}});
+})();
+</script>
+</body></html>

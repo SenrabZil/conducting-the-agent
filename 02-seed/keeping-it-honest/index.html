@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Keeping it honest · The seed project · Conducting the agent</title>
+<meta name="description" content="Six guards keep every report setting traceable to a seed example, a commit and a register line.">
+<link rel="stylesheet" href="../../assets/css/course.css">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFFFFF; --soft:#F3F5F6; --panel:#FFFFFF; --ink:#2D3439; --slate:#5E6870; --line:#DEE3E6;
+    --green:#0F7C72; --green-d:#0A5C55; --green-l:#D3F1EC;
+    --blue:#3A6EA5; --blue-d:#2B5A8C; --blue-l:#E3ECF6;
+    --gold:#F2B33D; --gold-d:#C98E1C; --gold-l:#FBF1D9;
+    --red:#C8413A; --red-d:#A8322C; --red-l:#FAE2DF;
+    --orange:#D9772B; --purple:#9466C4; --purple-d:#7A50AE;
+    --deep:#1E3A5F;
+    --mono: ui-monospace,"Cascadia Code",Consolas,"Roboto Mono",monospace;
+    --sans: "Nunito","Varela Round",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    --hdr:rgba(255,255,255,.94);
+    --frost:var(--soft); --volt:var(--blue); --volt-ink:var(--blue-d); --ember:var(--orange); --ember-ink:#9A4A0C; --bad:var(--red); --ok:var(--green);
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --bg:#12191D; --soft:#1B252A; --panel:#1B252A; --ink:#EEF2F4; --slate:#AAB5BC; --line:#36434B;
+    --green-l:#123A36; --blue-l:#1C2E45; --gold-l:#3A2F17; --red-l:#4A211E; --hdr:rgba(18,25,29,.94); --deep:#3A6EA5;
+  }}
+  :root[data-theme="dark"]{
+    --bg:#12191D; --soft:#1B252A; --panel:#1B252A; --ink:#EEF2F4; --slate:#AAB5BC; --line:#36434B;
+    --green-l:#123A36; --blue-l:#1C2E45; --gold-l:#3A2F17; --red-l:#4A211E; --hdr:rgba(18,25,29,.94); --deep:#3A6EA5;
+  }
+  *,*::before,*::after{box-sizing:inherit}
+  html{scroll-behavior:smooth;scroll-padding-top:calc(70px + env(safe-area-inset-top,0px))}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17.5px;line-height:1.6;font-weight:600;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:820px;margin:0 auto;padding:0 20px}
+  header{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--hdr);backdrop-filter:blur(8px);border-bottom:2px solid var(--line)}
+  .bar{display:flex;align-items:center;gap:14px;height:60px}
+  .bar .home{display:flex;align-items:center;gap:8px;color:var(--green);font-weight:900;font-size:18px;text-decoration:none;white-space:nowrap}
+  .bar .home svg{width:30px;height:30px}
+  .pbar{flex:1;height:16px;background:var(--line);border-radius:999px;overflow:hidden;min-width:60px}
+  .pbar i{display:block;height:100%;width:0;background:var(--green);border-radius:999px;transition:width .5s cubic-bezier(.3,1.4,.5,1);box-shadow:inset 0 -4px 0 rgba(0,0,0,.08)}
+  .stat{display:flex;align-items:center;gap:4px;font-weight:900;font-size:16px;white-space:nowrap}
+  .stat.fire{color:var(--orange)} .stat.xp{color:var(--blue)}
+  .stat svg{width:22px;height:22px}
+  .bump{animation:bump .5s}
+  @keyframes bump{30%{transform:scale(1.35)}}
+  .hero{padding:34px 0 18px}
+  .eyebrow{display:inline-block;font-weight:800;font-size:13px;letter-spacing:.06em;color:var(--green-d);background:var(--green-l);border-radius:999px;padding:4px 12px;margin-bottom:14px}
+  h1{font-size:clamp(32px,5.4vw,50px);line-height:1.05;letter-spacing:-.01em;margin:0 0 18px;font-weight:900}
+  .intro{display:flex;gap:18px;align-items:flex-end}
+  .intro svg.mascot{width:110px;height:110px;flex:none}
+  .bubble{position:relative;background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:14px 18px;font-size:18px;color:var(--ink);max-width:48ch}
+  .bubble::before{content:"";position:absolute;left:-12px;bottom:22px;border:10px solid transparent;border-right-color:var(--line)}
+  .bubble::after{content:"";position:absolute;left:-8px;bottom:23px;border:9px solid transparent;border-right-color:var(--panel)}
+  .byline{margin-top:14px;font-size:14px;color:var(--slate)} .byline b{color:var(--ink)}
+  section{padding:30px 0;border-top:2px solid var(--line)}
+  .snum{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;padding:0 8px;border-radius:12px;background:var(--blue-l);color:var(--blue-d);font-weight:900;font-size:15px}
+  h2{font-size:clamp(23px,3.4vw,30px);line-height:1.15;margin:10px 0 12px;font-weight:900}
+  h3{font-weight:900}
+  p{margin:0 0 14px} .muted{color:var(--slate)}
+  b,strong{font-weight:800}
+  .say{background:var(--blue-l);border:2px solid var(--blue);border-radius:16px;padding:12px 16px;margin:18px 0 10px}
+  .say b:first-child{color:var(--blue-d)}
+  .caution{background:var(--gold-l);border:2px solid var(--gold);border-radius:16px;padding:12px 16px;margin:18px 0;font-size:15.5px;color:var(--ink)}
+  .panel{background:var(--panel);border:2px solid var(--line);border-bottom-width:4px;border-radius:18px;padding:18px;margin:18px 0}
+  .stage{position:relative;border-radius:14px;overflow:hidden;min-height:280px}
+  .cover{position:absolute;inset:0;background:var(--soft);display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:center;text-align:center;padding:24px;transition:opacity .45s,transform .45s;z-index:4;border-radius:14px}
+  .cover svg{width:84px;height:84px}
+  .cover.gone{opacity:0;transform:scale(1.04);pointer-events:none} .cover .q{font-size:17px;font-weight:800;max-width:30ch;color:var(--slate)}
+  .controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:14px}
+  .clabel{font-size:13px;font-weight:800;color:var(--slate)}
+  .seg{display:inline-flex;flex-wrap:wrap;gap:6px}
+  .seg button,.btn{font-family:var(--sans);font-weight:800;font-size:14px;border:2px solid var(--line);border-bottom-width:4px;background:var(--panel);color:var(--slate);padding:7px 13px;border-radius:12px;cursor:pointer;transition:transform .08s}
+  .seg button:active,.btn:active{transform:translateY(2px);border-bottom-width:2px}
+  .seg button[aria-pressed=true]{background:var(--blue-l);border-color:var(--blue);color:var(--blue-d)}
+  .btn[aria-pressed=true]{background:var(--gold-l);border-color:var(--gold-d);color:var(--ink)}
+  .big-btn{display:inline-block;font-family:var(--sans);font-weight:900;font-size:17px;letter-spacing:.04em;text-transform:uppercase;background:var(--green);color:#fff;border:0;border-radius:16px;padding:14px 28px;box-shadow:0 5px 0 var(--green-d);cursor:pointer;text-decoration:none;transition:transform .08s,box-shadow .08s}
+  .big-btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--green-d)}
+  .big-btn.blue{background:var(--blue);box-shadow:0 5px 0 var(--blue-d)}
+  .readout{display:flex;flex-wrap:wrap;gap:8px 22px;align-items:center;margin-top:14px;border-top:2px dashed var(--line);padding-top:14px;font-size:14.5px;color:var(--slate);font-weight:700}
+  .readout b{color:var(--ink)} .readout .big{font-size:24px;font-weight:900;color:var(--ink)}
+  .tag{font-weight:900;font-size:12px;letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:5px 12px}
+  .tag.up{background:var(--red-l);color:var(--red-d)} .tag.dn{background:var(--green-l);color:var(--green-d)}
+  .choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:12px 0}
+  .choice{font-family:var(--sans);font-weight:800;font-size:15.5px;background:var(--panel);border:2px solid var(--line);border-bottom-width:4px;border-radius:14px;padding:12px 16px;cursor:pointer;color:var(--ink);text-align:left;transition:transform .08s,background .15s}
+  .choice:hover{background:var(--soft)} .choice:active{transform:translateY(2px);border-bottom-width:2px}
+  .choice[aria-pressed=true]{background:var(--blue-l);border-color:var(--blue);color:var(--blue-d)}
+  .choice.right{background:var(--green-l)!important;border-color:var(--green)!important;color:var(--green-d)!important}
+  .choice.wrong{background:var(--red-l)!important;border-color:var(--red)!important;color:var(--red-d)!important;animation:shake .4s}
+  @keyframes shake{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+  .verdict{font-size:15.5px;margin-top:4px;min-height:0;border-radius:14px;font-weight:800}
+  .verdict.ok,.verdict.bad{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;animation:pop .35s}
+  .verdict.ok{background:var(--green-l);color:var(--green-d)} .verdict.bad{background:var(--red-l);color:var(--red-d)}
+  .verdict.ok::before,.verdict.bad::before{flex:none;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;color:#fff;font-weight:900;font-size:15px}
+  .verdict.ok::before{content:"✓";background:var(--green)} .verdict.bad::before{content:"✕";background:var(--red)}
+  @keyframes pop{0%{transform:scale(.96);opacity:0}100%{transform:none;opacity:1}}
+  .xpfly{position:fixed;z-index:60;font-weight:900;color:var(--blue);font-size:20px;pointer-events:none;animation:fly 1s forwards}
+  @keyframes fly{to{transform:translateY(-60px);opacity:0}}
+  .rule{background:var(--green);color:#fff;border-radius:20px;padding:22px 22px 20px;margin-top:8px;box-shadow:0 5px 0 var(--green-d);position:relative;overflow:hidden}
+  .rule::after{content:"";position:absolute;right:-30px;top:-30px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.12)}
+  .rule h3{margin:0 0 10px;font-size:21px;color:#fff;line-height:1.3} .rule p{color:#EEF9F7;margin:0 0 10px} .rule p:last-child{margin:0} .rule .k{background:rgba(255,255,255,.22);border-radius:6px;padding:0 5px;color:#fff}
+  .rule .muted{color:#E2F5F2!important}
+  .finish{text-align:center;padding:26px 0 8px}
+  footer{padding:40px 0;color:var(--slate);font-size:13px;border-top:2px solid var(--line);font-weight:600}
+  :focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:14px 0}
+  .card{background:var(--panel);border:2px solid var(--line);border-bottom-width:4px;border-radius:16px;padding:14px 16px;font-size:15.5px;line-height:1.45}
+  .card b{display:block;margin-bottom:4px;font-size:16.5px}
+  .card .ic{display:flex;width:46px;height:46px;border-radius:14px;align-items:center;justify-content:center;margin-bottom:10px}
+  .card .ic svg{width:28px;height:28px}
+  table.t{width:100%;border-collapse:separate;border-spacing:0;font-size:15px;background:var(--panel);border:2px solid var(--line);border-radius:14px;overflow:hidden}
+  table.t th,table.t td{text-align:left;padding:10px 12px;border-bottom:2px solid var(--line);vertical-align:top}
+  table.t th{font-size:12.5px;letter-spacing:.04em;color:var(--slate);font-weight:900;text-transform:uppercase;background:var(--soft)}
+  table.t tr:last-child td{border-bottom:0}
+  .scroll{overflow-x:auto}
+  .pill{font-size:12px;font-weight:900;border-radius:999px;padding:3px 10px;white-space:nowrap}
+  .pill.ok{background:var(--green-l);color:var(--green-d)}.pill.warn{background:var(--gold-l);color:#9a6a00}.pill.bad{background:var(--red-l);color:var(--red-d)}
+  pre{background:var(--soft);border:2px solid var(--line);border-radius:12px;padding:12px 14px;overflow-x:auto;font-size:13px;line-height:1.5;margin:0;font-weight:500}
+  code{font-family:var(--mono);font-size:.88em;font-weight:500}
+  .gl{font-size:13px;font-weight:800;color:var(--slate);margin:14px 0 6px}
+  .hl{background:rgba(217,119,43,.25);border-radius:4px;padding:0 2px}
+  .hlv{background:rgba(58,110,165,.25);border-radius:4px;padding:0 2px}
+  .done-ov{position:fixed;inset:0;z-index:80;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:24px}
+  .done-ov.show{display:flex;animation:pop .4s}
+  .done-ov h2{font-size:34px;color:var(--gold-d);margin:0}
+  .done-ov svg.mascot{width:150px;height:150px;animation:hop 1s infinite}
+  @keyframes hop{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+  .dstats{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+  .dstat{border:2px solid;border-radius:16px;overflow:hidden;min-width:120px}
+  .dstat .h{color:#fff;font-weight:900;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;padding:4px 10px}
+  .dstat .v{font-weight:900;font-size:24px;padding:8px 10px;display:flex;align-items:center;justify-content:center;gap:6px}
+  .dstat svg{width:26px;height:26px}
+  #confetti{position:fixed;inset:0;pointer-events:none;z-index:90}
+</style>
+<style id="cta-palette">:root{--gold-d:#8A6000;--orange:#B5571A;--ember-ink:#9A4A0C;--purple-d:#6E449E;}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--green-d:#5CCABD;--blue:#7FA8DA;--blue-d:#8DB4E2;--gold-d:#E9C46A;--red:#F07A70;--red-d:#F09088;--purple-d:#C3A6E8;--orange:#E8935A;--ember-ink:#E8935A;--deep:#8DB4E2;}:root:not([data-theme="light"]) .pop{background:#24476E}:root:not([data-theme="light"]) .xpfly,:root:not([data-theme="light"]) .bar .home{color:var(--green-d)}:root:not([data-theme="light"]) .series a.here,:root:not([data-theme="light"]) .step .num,:root:not([data-theme="light"]) .node .dot,:root:not([data-theme="light"]) .pbtn,:root:not([data-theme="light"]) .snum,:root:not([data-theme="light"]) .loop .n{color:#12191D}}:root[data-theme="dark"]{--green-d:#5CCABD;--blue:#7FA8DA;--blue-d:#8DB4E2;--gold-d:#E9C46A;--red:#F07A70;--red-d:#F09088;--purple-d:#C3A6E8;--orange:#E8935A;--ember-ink:#E8935A;--deep:#8DB4E2;}:root[data-theme="dark"] .pop{background:#24476E}:root[data-theme="dark"] .xpfly,:root[data-theme="dark"] .bar .home{color:var(--green-d)}:root[data-theme="dark"] .series a.here,:root[data-theme="dark"] .step .num,:root[data-theme="dark"] .node .dot,:root[data-theme="dark"] .pbtn,:root[data-theme="dark"] .snum,:root[data-theme="dark"] .loop .n{color:#12191D}</style>
+</head>
+<body>
+<header><div class="wrap bar">
+  <a class="home" href="../index.html" aria-label="Back to the lesson path"><svg class="" viewBox="0 0 108 108" aria-hidden="true">
+  <ellipse cx="54" cy="100" rx="30" ry="5" fill="rgba(0,0,0,.08)"/>
+  <path d="M54 30 C54 20 54 14 54 8" stroke="#0A5C55" stroke-width="5" stroke-linecap="round"/>
+  <path d="M54 16 C40 2 22 8 22 8 C24 24 42 26 54 20Z" fill="#0F7C72" stroke="#0A5C55" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M54 12 C66 -2 86 4 86 4 C84 20 66 22 54 16Z" fill="#3FB3A6" stroke="#0A5C55" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M54 26 C28 26 14 46 14 64 C14 86 32 98 54 98 C76 98 94 86 94 64 C94 46 80 26 54 26Z" fill="#C98B4B" stroke="#8A5A2B" stroke-width="3.5"/>
+  <path d="M28 52 C32 40 42 34 52 33" stroke="#E2B07A" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <circle cx="41" cy="58" r="9" fill="#fff"/><circle cx="67" cy="58" r="9" fill="#fff"/>
+  <circle cx="43" cy="59" r="4.5" fill="#2D3439"/><circle cx="69" cy="59" r="4.5" fill="#2D3439"/>
+  <circle cx="44.5" cy="57.5" r="1.5" fill="#fff"/><circle cx="70.5" cy="57.5" r="1.5" fill="#fff"/>
+  
+  <ellipse cx="30" cy="72" rx="6" ry="4" fill="#FF9F9F" opacity=".6"/><ellipse cx="78" cy="72" rx="6" ry="4" fill="#FF9F9F" opacity=".6"/>
+  <path d="M44 70 Q54 80 64 70" stroke="#2D3439" stroke-width="4" fill="none" stroke-linecap="round"/>
+</svg><span>Seed</span></a>
+  <div class="pbar" role="progressbar" aria-label="Lesson progress"><i id="pfill"></i></div>
+  <span class="stat fire" title="Day streak"><svg viewBox="0 0 24 24"><path d="M12 2c1 4 5 6 5 11a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5 0 2 1 3 2 3 0-3-1-6 1-9.5z" fill="#D9772B"/><path d="M12 13c1 1.5 2 2.5 2 4a2 2 0 0 1-4 0c0-1.5 1-2.5 2-4z" fill="#F2B33D"/></svg><span id="fireN">0</span></span>
+  <span class="stat xp" id="xpStat" title="XP"><svg viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 12L2 9z" fill="#3A6EA5"/><path d="M2 9h20M8 3l4 18M16 3l-4 18M6 3l2 6h8l2-6" stroke="#2B5A8C" stroke-width="1.2" fill="none"/></svg><span id="xpN">0</span></span>
+  <a class="pbs-about" href="../../about.html">About</a>
+</div></header>
+<main class="wrap">
+  <div class="hero">
+    <div class="eyebrow">Lesson 07 · Guards</div>
+    <h1>Blocked, checked,<br>looked at.</h1>
+    <div class="intro"><svg class="mascot" viewBox="0 0 108 108" aria-hidden="true">
+  <ellipse cx="54" cy="100" rx="30" ry="5" fill="rgba(0,0,0,.08)"/>
+  <path d="M54 30 C54 20 54 14 54 8" stroke="#0A5C55" stroke-width="5" stroke-linecap="round"/>
+  <path d="M54 16 C40 2 22 8 22 8 C24 24 42 26 54 20Z" fill="#0F7C72" stroke="#0A5C55" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M54 12 C66 -2 86 4 86 4 C84 20 66 22 54 16Z" fill="#3FB3A6" stroke="#0A5C55" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M54 26 C28 26 14 46 14 64 C14 86 32 98 54 98 C76 98 94 86 94 64 C94 46 80 26 54 26Z" fill="#C98B4B" stroke="#8A5A2B" stroke-width="3.5"/>
+  <path d="M28 52 C32 40 42 34 52 33" stroke="#E2B07A" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <circle cx="41" cy="58" r="9" fill="#fff"/><circle cx="67" cy="58" r="9" fill="#fff"/>
+  <circle cx="43" cy="59" r="4.5" fill="#2D3439"/><circle cx="69" cy="59" r="4.5" fill="#2D3439"/>
+  <circle cx="44.5" cy="57.5" r="1.5" fill="#fff"/><circle cx="70.5" cy="57.5" r="1.5" fill="#fff"/>
+  
+  <ellipse cx="30" cy="72" rx="6" ry="4" fill="#FF9F9F" opacity=".6"/><ellipse cx="78" cy="72" rx="6" ry="4" fill="#FF9F9F" opacity=".6"/>
+  <path d="M44 70 Q54 80 64 70" stroke="#2D3439" stroke-width="4" fill="none" stroke-linecap="round"/>
+</svg><div class="bubble">The guards that keep every setting in the report traceable to an example made by hand, and what to do when one of them stops you.</div></div>
+    <p class="byline">with <b>Elizabeth Cecilia</b>. A guard that stops you is doing its job.</p>
+  </div>
+
+  <section>
+    <div class="snum">01</div>
+    <h2>Six guards</h2>
+    <p>The seed only helps if what's in the report can be traced back to it. These guards make sure it can.</p>
+    <div class="grid">
+      <div class="card"><span class="ic" style="background:var(--green-l)"><svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z" fill="#0F7C72"/><path d="m8.5 12 2.5 2.5 4.5-5" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><b>No seed example, no build</b>The generator refuses a property the seed hasn't shown. Seed first is enforced by code, not memory.</div>
+      <div class="card"><span class="ic" style="background:var(--blue-l)"><svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z" fill="#3A6EA5"/><path d="m8.5 12 2.5 2.5 4.5-5" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><b>Seed committed first</b>The seed gets its own commit before the report changes, so every block can be traced to its example.</div>
+      <div class="card"><span class="ic" style="background:#EFE7F8"><svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z" fill="#9466C4"/><path d="m8.5 12 2.5 2.5 4.5-5" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><b>Validator checks the shape</b>Every visual is checked against the seed's shape. Each check is proven by breaking a copy on purpose.</div>
+      <div class="card"><span class="ic" style="background:var(--gold-l)"><svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z" fill="#F2B33D"/><path d="m8.5 12 2.5 2.5 4.5-5" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><b>Both values recorded</b>The register notes the seed value and the report value, like 4 px and 0 px.</div>
+      <div class="card"><span class="ic" style="background:#FFF0DC"><svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z" fill="#D9772B"/><path d="m8.5 12 2.5 2.5 4.5-5" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><b>Tests end with Don't save</b>Tries in the real project are never kept outside a review.</div>
+      <div class="card"><span class="ic" style="background:var(--red-l)"><svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z" fill="#C8413A"/><path d="m8.5 12 2.5 2.5 4.5-5" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><b>The export stays frozen</b>A file that was sent is never edited. A new version is a new export.</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="snum">02</div>
+    <h2>What would you do?</h2>
+    <p class="say"><b>Predict first:</b> the generator stops with "no seed example for this property". Is that a fault?</p>
+    <div class="choices" id="gChoices" role="group" aria-label="Is it a fault">
+      <button class="choice" data-v="bug">Yes, fix the generator</button>
+      <button class="choice" data-v="guard">No, it's a guard working</button>
+    </div>
+    <div class="verdict" id="gVerdict" aria-live="polite"></div>
+    <div class="panel">
+      <div class="stage" style="min-height:330px">
+        <div id="sc" style="padding:4px"></div>
+        <div class="cover" id="gCover"><svg class="" viewBox="0 0 108 108" aria-hidden="true">
+  <ellipse cx="54" cy="100" rx="30" ry="5" fill="rgba(0,0,0,.08)"/>
+  <path d="M54 30 C54 20 54 14 54 8" stroke="#0A5C55" stroke-width="5" stroke-linecap="round"/>
+  <path d="M54 16 C40 2 22 8 22 8 C24 24 42 26 54 20Z" fill="#0F7C72" stroke="#0A5C55" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M54 12 C66 -2 86 4 86 4 C84 20 66 22 54 16Z" fill="#3FB3A6" stroke="#0A5C55" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M54 26 C28 26 14 46 14 64 C14 86 32 98 54 98 C76 98 94 86 94 64 C94 46 80 26 54 26Z" fill="#C98B4B" stroke="#8A5A2B" stroke-width="3.5"/>
+  <path d="M28 52 C32 40 42 34 52 33" stroke="#E2B07A" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <circle cx="41" cy="58" r="9" fill="#fff"/><circle cx="67" cy="58" r="9" fill="#fff"/>
+  <circle cx="44" cy="55" r="4.5" fill="#2D3439"/><circle cx="70" cy="55" r="4.5" fill="#2D3439"/>
+  <circle cx="44.5" cy="57.5" r="1.5" fill="#fff"/><circle cx="70.5" cy="57.5" r="1.5" fill="#fff"/>
+  
+  <ellipse cx="30" cy="72" rx="6" ry="4" fill="#FF9F9F" opacity=".6"/><ellipse cx="78" cy="72" rx="6" ry="4" fill="#FF9F9F" opacity=".6"/>
+  <path d="M47 73 H61" stroke="#2D3439" stroke-width="4" stroke-linecap="round"/>
+</svg><div class="q">Predict above to try four more situations.</div></div>
+      </div>
+      <div class="readout"><span><span class="muted">handled</span> <span class="big" id="scN">0 / 4</span></span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="snum">03</div>
+    <h2>What the seed isn't</h2>
+    <div class="grid">
+      <div class="card"><b>Not a copy of the report</b>It has a few small examples, not the real layout. Whether a setting works on a real tile is tested in the real project.</div>
+      <div class="card"><b>Not a list of defaults</b>It holds only settings that differ from the theme. The theme holds the rest.</div>
+      <div class="card"><b>Not a test bench to save over</b>Every change to it is deliberate, saved, committed and recorded in the register.</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="snum">04</div>
+    <h2>The rule, in one breath</h2>
+    <div class="rule">
+      <h3>Every setting in the report can be traced to a seed example, a commit and a register line.</h3>
+      <p>The agent is <span class="k">blocked</span> without an example, <span class="k">checked</span> after every build, and a person looks before anything is saved. That's what makes a fast agent safe to use.</p>
+      <p class="muted" style="color:#9fc0cb">That's the series. Back to the overview for the glossary.</p>
+    </div>
+  </section>
+
+  <div class="finish">
+    <button class="big-btn" id="finishBtn">Finish lesson</button>
+  </div>
+  <nav class="pbs-pn" data-pbs-row aria-label="Lesson navigation">
+    <a class="pbs-prev" data-pbs="prev" href="../readable-seed/index.html">&larr; A seed people can read</a>
+    <span class="pbs-mid"><a class="pbs-map" href="../../index.html">Course map</a></span>
+    <a class="pbs-next" data-pbs="next" href="../../03-model/three-layers/index.html">The model layer: Three layers &rarr;</a>
+  </nav>
+  <footer>The seed project · Lesson 07. Examples are taken from a real Power BI project built with a coding agent, September 2026. Progress is saved in this browser only.</footer>
+  <div class="pbs-footer">
+  <p class="pbs-course"><b>Conducting the agent</b> · Building a Power BI model with Claude Code</p>
+  <p class="pbs-credit">Designed and built by Liz Barnes with the assistance of Claude Code.</p>
+  <p class="pbs-licence">© 2026 Liz Barnes. Licensed under <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a>.</p>
+  <p class="pbs-links"><span class="pbs-author">Elizabeth Cecilia</span> · <a href="https://www.linkedin.com/in/liz-barnes-7365b85" target="_blank" rel="noopener">LinkedIn</a> · <a href="../../about.html#work-with-me">Work with me</a> · <a href="../../about.html">About</a> · <a href="../../index.html">Course map</a></p>
+</div>
+</main>
+<div class="done-ov" id="doneOv" role="dialog" aria-modal="true" aria-label="Lesson complete">
+  <svg class="mascot" viewBox="0 0 108 108" aria-hidden="true">
+  <ellipse cx="54" cy="100" rx="30" ry="5" fill="rgba(0,0,0,.08)"/>
+  <path d="M54 30 C54 20 54 14 54 8" stroke="#0A5C55" stroke-width="5" stroke-linecap="round"/>
+  <path d="M54 16 C40 2 22 8 22 8 C24 24 42 26 54 20Z" fill="#0F7C72" stroke="#0A5C55" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M54 12 C66 -2 86 4 86 4 C84 20 66 22 54 16Z" fill="#3FB3A6" stroke="#0A5C55" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M54 26 C28 26 14 46 14 64 C14 86 32 98 54 98 C76 98 94 86 94 64 C94 46 80 26 54 26Z" fill="#C98B4B" stroke="#8A5A2B" stroke-width="3.5"/>
+  <path d="M28 52 C32 40 42 34 52 33" stroke="#E2B07A" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <circle cx="41" cy="58" r="9" fill="#fff"/><circle cx="67" cy="58" r="9" fill="#fff"/>
+  <circle cx="43" cy="59" r="4.5" fill="#2D3439"/><circle cx="69" cy="59" r="4.5" fill="#2D3439"/>
+  <circle cx="44.5" cy="57.5" r="1.5" fill="#fff"/><circle cx="70.5" cy="57.5" r="1.5" fill="#fff"/>
+  
+  <ellipse cx="30" cy="72" rx="6" ry="4" fill="#FF9F9F" opacity=".6"/><ellipse cx="78" cy="72" rx="6" ry="4" fill="#FF9F9F" opacity=".6"/>
+  <ellipse cx="54" cy="73" rx="6" ry="7" fill="#2D3439"/><ellipse cx="54" cy="76" rx="3.5" ry="3" fill="#E8837A"/>
+</svg>
+  <h2>Lesson complete!</h2>
+  <div class="dstats">
+    <div class="dstat" style="border-color:var(--gold)"><div class="h" style="background:var(--gold)">Total XP</div><div class="v" style="color:var(--gold-d)"><svg viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 12L2 9z" fill="#3A6EA5"/><path d="M2 9h20M8 3l4 18M16 3l-4 18M6 3l2 6h8l2-6" stroke="#2B5A8C" stroke-width="1.2" fill="none"/></svg><span id="dXP">0</span></div></div>
+    <div class="dstat" style="border-color:var(--green)"><div class="h" style="background:var(--green)">Accuracy</div><div class="v" style="color:var(--green-d)" id="dAcc">100%</div></div>
+    <div class="dstat" style="border-color:var(--orange)"><div class="h" style="background:var(--orange)">Streak</div><div class="v" style="color:var(--orange)"><svg viewBox="0 0 24 24"><path d="M12 2c1 4 5 6 5 11a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5 0 2 1 3 2 3 0-3-1-6 1-9.5z" fill="#D9772B"/><path d="M12 13c1 1.5 2 2.5 2 4a2 2 0 0 1-4 0c0-1.5 1-2.5 2-4z" fill="#F2B33D"/></svg><span id="dFire">1</span></div></div>
+  </div>
+  <a data-pbs="next-btn" class="big-btn" href="../index.html">Back to the path</a>
+  <button class="btn" id="closeOv">Review this lesson</button>
+</div>
+<canvas id="confetti" aria-hidden="true"></canvas>
+<script>
+(function(){
+  "use strict";
+  const $=s=>document.querySelector(s);
+  const LESSON="07";
+
+  const KEY="cta-seedProjectProgress";
+  function load(){try{return JSON.parse(localStorage.getItem(KEY))||{xp:0,done:{},days:[]};}catch(e){return {xp:0,done:{},days:[]};}}
+  function save(s){try{localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
+  function today(){return new Date().toISOString().slice(0,10);}
+  function streak(days){let n=0;const d=new Date();for(;;){const k=d.toISOString().slice(0,10);if(days.indexOf(k)>=0){n++;d.setDate(d.getDate()-1);}else break;}return n;}
+  const G={st:load(),answered:{},right:0,tries:0,lessonXP:0,total:document.querySelectorAll(".choices").length};
+  function paint(){
+    $("#xpN").textContent=G.st.xp; $("#fireN").textContent=streak(G.st.days);
+    const done=Object.keys(G.answered).length; $("#pfill").style.width=(G.total?Math.min(100,done/G.total*100):0)+"%";
+  }
+  function fly(el,txt){const r=el.getBoundingClientRect();const f=document.createElement("div");f.className="xpfly";f.textContent=txt;f.style.left=(r.left+r.width/2-20)+"px";f.style.top=(r.top-10)+"px";document.body.appendChild(f);setTimeout(()=>f.remove(),1000);}
+  function award(id,ok,el){
+    if(G.answered[id]!==undefined) return;
+    G.answered[id]=ok; G.tries++; if(ok) G.right++;
+    const x=ok?10:3; G.lessonXP+=x; G.st.xp+=x; if(G.st.days.indexOf(today())<0) G.st.days.push(today()); save(G.st);
+    if(el) fly(el,"+"+x+" XP");
+    const s=$("#xpStat"); s.classList.remove("bump"); void s.offsetWidth; s.classList.add("bump");
+    paint();
+  }
+  window.seedGame={award};
+  function mark(group,btn,ok){
+    group.querySelectorAll(".choice").forEach(x=>x.classList.remove("right","wrong"));
+    btn.classList.add(ok?"right":"wrong");
+  }
+  function confetti(){
+    if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const c=$("#confetti"),x=c.getContext("2d");c.width=innerWidth;c.height=innerHeight;
+    const col=["#0F7C72","#3A6EA5","#F2B33D","#C8413A","#9466C4","#D9772B"];
+    const P=Array.from({length:140},()=>({x:innerWidth/2,y:innerHeight/3,vx:(Math.random()-.5)*14,vy:Math.random()*-12-4,s:6+Math.random()*6,r:Math.random()*6,c:col[Math.random()*6|0]}));
+    let t=0;(function f(){x.clearRect(0,0,c.width,c.height);P.forEach(p=>{p.vy+=.35;p.x+=p.vx;p.y+=p.vy;p.r+=.2;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/3,p.s,p.s*.66);x.restore();});if(++t<150)requestAnimationFrame(f);else x.clearRect(0,0,c.width,c.height);})();
+  }
+  function finish(){
+    G.st.done[LESSON]=true; if(G.st.days.indexOf(today())<0) G.st.days.push(today()); G.st.xp+=20; G.lessonXP+=20; save(G.st); paint();
+    $("#dXP").textContent=G.lessonXP; $("#dAcc").textContent=(G.tries?Math.round(G.right/G.tries*100):100)+"%"; $("#dFire").textContent=streak(G.st.days);
+    $("#doneOv").classList.add("show"); confetti();
+  }
+  $("#finishBtn").addEventListener("click",finish);
+  $("#closeOv").addEventListener("click",()=>$("#doneOv").classList.remove("show"));
+  paint();
+  function predict(groupId,verdictId,coverId,right,msgs,after){
+    $(groupId).addEventListener("click",e=>{
+      const b=e.target.closest(".choice"); if(!b) return;
+      document.querySelectorAll(groupId+" .choice").forEach(x=>x.setAttribute("aria-pressed","false"));
+      b.setAttribute("aria-pressed","true");
+      const v=$(verdictId), ok=b.dataset.v===right;
+      mark($(groupId),b,ok); award(groupId,ok,b);
+      v.className="verdict "+(ok?"ok":"bad"); v.textContent=msgs[b.dataset.v];
+      if(after) after(b.dataset.v);
+      if(coverId) $(coverId).classList.add("gone");
+    });
+  }
+  function quiz(host,Q,scoreId,total,keyIdx,msgIdx){
+    const ans={};
+    host.addEventListener("click",e=>{
+      const b=e.target.closest(".choice");if(!b)return;const box=b.parentElement,i=+box.dataset.q;
+      box.querySelectorAll(".choice").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));
+      const ok=b.dataset.a===Q[i][keyIdx];ans[i]=ok;mark(box,b,ok);award(host.id+i,ok,b);
+      const v=document.getElementById(host.id+"v"+i);v.className="verdict "+(ok?"ok":"bad");v.textContent=Q[i][msgIdx];
+      $(scoreId).textContent=Object.values(ans).filter(Boolean).length+" / "+total;
+    });
+  }
+
+
+  const Q=[
+    ["The agent reports that the seed hasn't changed, but you're sure you set the option.",
+     [["a","Ask the agent to write the setting anyway"],["b","Check the folder date, and whether the value matches the theme"]],"b",
+     "Either the save didn't land, or the value equals the theme's default and Desktop recorded nothing. Writing it anyway would be a guess."],
+    ["A setting looks right when you try it in the real project.",
+     [["a","Save it: it works"],["b","Close with Don't save, then add it to the seed"]],"b",
+     "The test proved the value. It still goes through the seed and a build, so it's written Desktop's way and checked."],
+    ["The seed shows 4 px, but the report needs 0 px.",
+     [["a","Fine: record both values in the register"],["b","Change the seed to 0 px first"]],"a",
+     "The seed teaches the format, not the value. Recording both avoids the confusion later."],
+    ["A new run of the generator moves some items in the model files, with no change in meaning.",
+     [["a","Keep Desktop's layout and restore the files"],["b","Commit the generator's layout"]],"a",
+     "Desktop rewrites them on the next save anyway. Keeping its layout means that save changes nothing, and the history stays readable."]
+  ];
+  $("#sc").innerHTML=Q.map((q,i)=>'<div style="padding:10px 0;border-bottom:1px solid var(--line)"><div style="margin-bottom:8px">'+q[0]+'</div><div class="choices" style="margin:0" data-q="'+i+'">'+q[1].map(o=>'<button class="choice" data-a="'+o[0]+'">'+o[1]+'</button>').join("")+'</div><div class="verdict" id="scv'+i+'"></div></div>').join("");
+  quiz($("#sc"),Q,"#scN",4,2,3);
+  predict("#gChoices","#gVerdict","#gCover","guard",{
+    bug:"It's working as designed. The fix is a seed example, set by hand, not a change to the generator.",
+    guard:"Right. It stops a guessed format reaching the report. Set the example in the seed, then run it again."
+  });
+
+})();
+</script>
+<script src="../../assets/js/lessons-data.js"></script>
+<script src="../../assets/js/nav.js" data-page="02-seed/keeping-it-honest"></script>
+</body>
+</html>

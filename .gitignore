@@ -1,0 +1,22 @@
+# Local build script: reads from Liz's G: drive, not part of the public site
+tools/build-site.py
+
+# Working inventory of the source explainers (notes not meant for the public)
+inventory.csv
+
+# Windows files
+Thumbs.db
+desktop.ini
+
+# Local site checks: contain the private strings they search for
+tools/check-site.py
+
+# Source and screenshot script for assets/img/og-cover.png (the PNG itself is public)
+tools/og-cover.html
+tools/make-og-cover.py
+
+# Local screenshots for checking layout (open screenshots/index.html)
+screenshots/
+
+# Held lessons, built for local preview only (build-site.py HOLD_PREVIEW)
+preview/

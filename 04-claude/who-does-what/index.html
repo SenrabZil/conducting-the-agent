@@ -1,0 +1,374 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Who does what · Three in the loop · Conducting the agent</title>
+<meta name="description" content="The agent edits files, chat checks every message, and the person makes every call that matters.">
+<link rel="stylesheet" href="../../assets/css/course.css"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFFFFF; --soft:#F3F5F6; --panel:#FFFFFF; --ink:#2D3439; --slate:#5E6870; --line:#DEE3E6;
+  --green:#0F7C72; --green-d:#0A5C55; --green-l:#D3F1EC;
+  --blue:#3A6EA5; --blue-d:#2B5A8C; --blue-l:#E3ECF6;
+  --gold:#F2B33D; --gold-d:#C98E1C; --gold-l:#FBF1D9;
+  --red:#C8413A; --red-d:#A8322C; --red-l:#FAE2DF;
+  --purple:#9466C4; --purple-d:#7A50AE; --purple-l:#EFE7F8;
+  --deep:#1E3A5F; --hdr:rgba(255,255,255,.94);
+  --mono:ui-monospace,"Cascadia Code",Consolas,"Roboto Mono",monospace;
+  --sans:"Nunito",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12191D; --soft:#1B252A; --panel:#1B252A; --ink:#EEF2F4; --slate:#AAB5BC; --line:#36434B;
+  --green-l:#123A36; --blue-l:#1C2E45; --gold-l:#3A2F17; --red-l:#4A211E; --purple-l:#2F2440;
+  --hdr:rgba(18,25,29,.94); --deep:#3A6EA5;
+}}
+:root[data-theme="dark"]{
+  --bg:#12191D; --soft:#1B252A; --panel:#1B252A; --ink:#EEF2F4; --slate:#AAB5BC; --line:#36434B;
+  --green-l:#123A36; --blue-l:#1C2E45; --gold-l:#3A2F17; --red-l:#4A211E; --purple-l:#2F2440;
+  --hdr:rgba(18,25,29,.94); --deep:#3A6EA5;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-behavior:smooth;scroll-padding-top:calc(76px + env(safe-area-inset-top,0px))}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.55;font-weight:600}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--blue);outline-offset:3px;border-radius:8px}
+
+/* top bar: progress, hearts, xp */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--hdr);backdrop-filter:blur(6px);border-bottom:2px solid var(--line)}
+.top-in{max-width:760px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;gap:14px}
+.home{font-weight:900;color:var(--slate);text-decoration:none;font-size:15px;white-space:nowrap}
+.bar{flex:1;height:16px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--green);border-radius:99px;transition:width .5s cubic-bezier(.3,1.4,.5,1);box-shadow:inset 0 -4px 0 rgba(0,0,0,.08)}
+.stat{display:flex;align-items:center;gap:4px;font-weight:900;font-size:16px}
+.stat.hearts{color:var(--red)} .stat.xp{color:var(--gold-d)}
+.stat.hit{animation:pop .4s}
+@keyframes pop{50%{transform:scale(1.35)}}
+
+main{max-width:760px;margin:0 auto;padding:22px 18px 80px}
+.hero{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center;margin:14px 0 26px}
+.hero h1{font-size:clamp(28px,5vw,40px);line-height:1.1;margin:4px 0 6px;font-weight:900;color:var(--deep)}
+.hero .kick{font-size:15px;color:var(--slate);font-weight:800}
+.hero p{margin:0;color:var(--slate);max-width:52ch}
+@media (max-width:560px){.hero{grid-template-columns:1fr}.hero svg{width:96px}}
+
+.step{border:2px solid var(--line);border-radius:18px;padding:20px 20px 22px;margin:0 0 22px;background:var(--panel)}
+.step.locked{opacity:.35;pointer-events:none;filter:saturate(.3)}
+.step h2{font-size:22px;margin:0 0 4px;font-weight:900}
+.step .num{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--blue);color:#fff;font-size:15px;margin-right:8px;vertical-align:2px}
+.step.done .num{background:var(--green)}
+.step p{margin:8px 0;max-width:62ch}
+.lead{color:var(--slate)}
+
+/* chunky 3D buttons */
+.btn{display:inline-block;text-decoration:none;border:2px solid var(--line);border-bottom-width:5px;background:var(--panel);border-radius:14px;padding:12px 16px;font-weight:800;cursor:pointer;text-align:left;transition:transform .08s}
+.btn:active{transform:translateY(3px);border-bottom-width:2px;margin-bottom:3px}
+.btn.primary{background:var(--green);border-color:var(--green-d);color:#fff}
+.btn.primary:disabled{background:var(--line);border-color:var(--line);color:var(--slate);cursor:default}
+.opts{display:grid;gap:10px;margin:14px 0 6px}
+.opt.sel{border-color:var(--blue);background:var(--blue-l)}
+.opt.right{border-color:var(--green-d);background:var(--green-l)}
+.opt.wrong{border-color:var(--red-d);background:var(--red-l);animation:shake .4s}
+.opt[disabled]{cursor:default}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+
+.fb{display:none;margin-top:12px;border-radius:14px;padding:12px 16px;font-weight:700}
+.fb.show{display:block}
+.fb.good{background:var(--green-l);color:var(--green-d)}
+.fb.bad{background:var(--red-l);color:var(--red-d)}
+.fb b{font-weight:900}
+.fb span{color:var(--ink);font-weight:600}
+
+/* glossary terms */
+.term{border:0;background:none;padding:0;font-weight:800;color:var(--blue-d);border-bottom:2px dotted var(--blue);cursor:help}
+.pop{position:fixed;z-index:50;max-width:300px;background:var(--deep);color:#fff;border-radius:14px;padding:12px 14px;font-size:15px;line-height:1.45;box-shadow:0 6px 0 rgba(0,0,0,.18);display:none}
+:root[data-theme="dark"] .pop{background:#24476E}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pop{background:#24476E}}
+.pop b{display:block;font-size:16px;margin-bottom:2px}
+.pop.show{display:block}
+
+/* finish */
+.finish{text-align:center;border:2px solid var(--gold);background:var(--gold-l);border-radius:18px;padding:26px 18px;display:none}
+.finish.show{display:block;animation:pop .5s}
+.finish h2{font-size:28px;margin:6px 0;color:var(--gold-d);font-weight:900}
+.finish .chips{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:12px 0 18px}
+.finish .chip{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:8px 14px;font-weight:900}
+.series{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:18px}
+.series a{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;border:2px solid var(--line);border-bottom-width:4px;text-decoration:none;color:var(--slate);font-weight:900;font-size:14px;background:var(--panel)}
+.series a.here{border-color:var(--blue-d);background:var(--blue);color:#fff}
+.series a.seen{border-color:var(--green-d);background:var(--green);color:#fff}
+canvas.confetti{position:fixed;inset:0;pointer-events:none;z-index:60}
+
+.order .bank,.order .slots{display:flex;flex-wrap:wrap;gap:8px;min-height:56px;border-radius:14px;padding:8px}
+.order .slots{border:2px dashed var(--line);background:var(--soft);flex-direction:column;counter-reset:o}
+.order .slots:empty::before{content:"Tap the steps in order";color:var(--slate);padding:8px}
+.order .slots .oi{counter-increment:o} .order .slots .oi::before{content:counter(o) ". ";color:var(--slate)}
+.oi{font-size:15px;padding:9px 12px}
+.oi.good{border-color:var(--green-d);background:var(--green-l)} .oi.bad{border-color:var(--red-d);background:var(--red-l);animation:shake .4s}
+.chk{margin-top:10px}
+.tapgrid{display:grid;grid-template-columns:minmax(0,260px) 1fr;gap:14px;margin-top:12px}
+@media (max-width:620px){.tapgrid{grid-template-columns:1fr}}
+.tree{font-family:var(--mono);font-size:14px;display:flex;flex-direction:column;gap:2px}
+.tree .dir{color:var(--slate);padding:4px 6px;font-weight:700}
+.tap{border:2px solid transparent;background:none;text-align:left;border-radius:10px;padding:5px 8px;cursor:pointer;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--blue-d)}
+.tap:hover{background:var(--blue-l)} .tap.on{border-color:var(--blue);background:var(--blue-l)}
+.tap-panel{border:2px solid var(--line);border-radius:14px;padding:14px;min-height:160px;font-size:15.5px}
+.tapcount{font-size:14px;color:var(--slate);font-weight:800}
+.tb{background:#101A1F;color:#D6E4EA;border-radius:14px;padding:12px 14px;font-family:var(--mono);font-size:13.5px;line-height:1.55;overflow-x:auto;white-space:pre;margin:10px 0}
+.tb .k{color:#9DBCE0} .tb .s{color:#A8E3DA} .tb .n{color:#F5CF7A} .tb .c{color:#7E929C}
+.spot .opts{gap:0;background:#101A1F;border-radius:14px;padding:8px;overflow-x:auto}
+.spot .opt{font-family:var(--mono);font-size:13.5px;font-weight:600;background:transparent;color:#D6E4EA;border:2px solid transparent;border-bottom-width:2px;border-radius:8px;padding:5px 8px;white-space:pre-wrap}
+.spot .opt:hover{border-color:#36434B}
+.spot .opt.right{background:#123A36;border-color:var(--green);color:#D3F1EC}
+.spot .opt.wrong{background:#4A211E;border-color:var(--red);color:#FAE2DF}
+.spot .opt:active{transform:none;margin-bottom:0;border-bottom-width:2px}
+footer{max-width:760px;margin:0 auto;padding:0 18px 30px;color:var(--slate);font-size:14px}
+
+.who{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+@media (max-width:620px){.who{grid-template-columns:1fr}}
+.card{perspective:900px;border:0;background:none;padding:0;cursor:pointer;min-height:270px;text-align:left}
+.card .in{position:relative;width:100%;height:100%;min-height:270px;transition:transform .5s;transform-style:preserve-3d}
+.card.flip .in{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;border-radius:16px;border:2px solid;border-bottom-width:6px;padding:16px;backface-visibility:hidden;display:flex;flex-direction:column}
+.face.front{align-items:center;justify-content:center;text-align:center;gap:6px}
+.face.back{transform:rotateY(180deg);font-size:14.5px;gap:4px;line-height:1.4}
+.face h3{margin:0;font-size:20px;font-weight:900}
+.face small{color:var(--slate);font-weight:700}
+.face .row b{display:block;font-size:13px;color:var(--slate)}
+.you .face{border-color:var(--gold-d);background:var(--gold-l)}
+.chat .face{border-color:var(--purple-d);background:var(--purple-l)}
+.code .face{border-color:var(--blue-d);background:var(--blue-l)}
+.av{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font-size:30px;color:#fff;font-weight:900}
+.you .av{background:var(--gold)} .chat .av{background:var(--purple)} .code .av{background:var(--blue)}
+.tapnote{font-size:13px;color:var(--slate);margin-top:4px}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.task{font-size:15px;padding:9px 12px}
+.task.pick{border-color:var(--blue);background:var(--blue-l);transform:translateY(-2px)}
+.task.wrong{animation:shake .4s;border-color:var(--red-d);background:var(--red-l)}
+.lanes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media (max-width:620px){.lanes{grid-template-columns:1fr}}
+.lane{border:2px dashed var(--line);border-radius:16px;padding:10px;min-height:120px;cursor:pointer;background:var(--soft);text-align:left;display:flex;flex-direction:column;gap:6px}
+.lane h4{margin:0 0 4px;font-size:16px;font-weight:900;display:flex;align-items:center;gap:8px}
+.lane h4 i{width:14px;height:14px;border-radius:50%;display:inline-block}
+.lane.armed{border-color:var(--blue);border-style:solid}
+.lane .placed{font-size:14px;border-radius:10px;padding:6px 9px;font-weight:700;animation:pop .3s}
+.lane.you h4 i{background:var(--gold)} .lane.you .placed{background:var(--gold-l)}
+.lane.chat h4 i{background:var(--purple)} .lane.chat .placed{background:var(--purple-l)}
+.lane.code h4 i{background:var(--blue)} .lane.code .placed{background:var(--blue-l)}
+.sortfb{min-height:26px;font-weight:800;margin-top:10px}
+
+.loopwrap{display:grid;grid-template-columns:minmax(0,300px) 1fr;gap:20px;align-items:center;margin-top:12px}
+@media (max-width:620px){.loopwrap{grid-template-columns:1fr;justify-items:center}}
+.ring{width:100%;max-width:300px;height:auto}
+.ring .node{cursor:pointer}
+.ring .node circle{stroke-width:4;transition:r .25s}
+.ring .node text{font-weight:900;font-size:17px;pointer-events:none}
+.ring .node.on circle{r:25}
+.ring .arc{fill:none;stroke:var(--line);stroke-width:8;stroke-linecap:round}
+.ring .arc.lit{stroke:var(--green)}
+.loopcard{border:2px solid var(--line);border-radius:16px;padding:16px;min-height:170px}
+.loopcard .who-tag{display:inline-block;border-radius:99px;padding:3px 12px;font-size:14px;font-weight:900;color:#fff}
+.loopcard h3{margin:8px 0 4px;font-size:19px;font-weight:900}
+.loopcard p{margin:0;font-size:15.5px}
+.loopnav{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+</style><style>/* course build */
+/* long file paths scroll inside the tree, not the page */
+.tapgrid>*,.theme>*{min-width:0}.tree{overflow-x:auto}
+</style>
+<style id="cta-palette">:root{--gold-d:#8A6000;--orange:#B5571A;--ember-ink:#9A4A0C;--purple-d:#6E449E;}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--green-d:#5CCABD;--blue:#7FA8DA;--blue-d:#8DB4E2;--gold-d:#E9C46A;--red:#F07A70;--red-d:#F09088;--purple-d:#C3A6E8;--orange:#E8935A;--ember-ink:#E8935A;--deep:#8DB4E2;}:root:not([data-theme="light"]) .pop{background:#24476E}:root:not([data-theme="light"]) .xpfly,:root:not([data-theme="light"]) .bar .home{color:var(--green-d)}:root:not([data-theme="light"]) .series a.here,:root:not([data-theme="light"]) .step .num,:root:not([data-theme="light"]) .node .dot,:root:not([data-theme="light"]) .pbtn,:root:not([data-theme="light"]) .snum,:root:not([data-theme="light"]) .loop .n{color:#12191D}}:root[data-theme="dark"]{--green-d:#5CCABD;--blue:#7FA8DA;--blue-d:#8DB4E2;--gold-d:#E9C46A;--red:#F07A70;--red-d:#F09088;--purple-d:#C3A6E8;--orange:#E8935A;--ember-ink:#E8935A;--deep:#8DB4E2;}:root[data-theme="dark"] .pop{background:#24476E}:root[data-theme="dark"] .xpfly,:root[data-theme="dark"] .bar .home{color:var(--green-d)}:root[data-theme="dark"] .series a.here,:root[data-theme="dark"] .step .num,:root[data-theme="dark"] .node .dot,:root[data-theme="dark"] .pbtn,:root[data-theme="dark"] .snum,:root[data-theme="dark"] .loop .n{color:#12191D}</style>
+</head><body>
+<header class="top"><div class="top-in">
+<a class="home" href="../index.html">Three in the loop</a>
+<div class="bar" role="progressbar" aria-label="Lesson progress"><i></i></div>
+<span class="stat hearts" title="Hearts">❤️ <b>3</b></span><span class="stat xp" title="XP">⚡ <b>0</b></span>
+  <a class="pbs-about" href="../../about.html">About</a>
+</div></header>
+<main>
+<div class="hero"><svg width="110" height="110" viewBox="0 0 120 120" aria-hidden="true">
+<circle cx="60" cy="62" r="52" fill="#2A9D90"/><circle cx="60" cy="62" r="52" fill="none" stroke="#0A5C55" stroke-width="6"/>
+<circle cx="60" cy="62" r="30" fill="#D3F1EC"/>
+<path d="M60 4 l10 10 -10 10" fill="none" stroke="#0A5C55" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="48" cy="56" r="9" fill="#fff"/><circle cx="72" cy="56" r="9" fill="#fff"/>
+<circle cx="50" cy="57" r="5" fill="#2D3439"/><circle cx="74" cy="57" r="5" fill="#2D3439"/>
+<path d="M46 72 Q60 84 74 72" stroke="#2D3439" stroke-width="5" fill="none" stroke-linecap="round"/></svg><div><div class="kick">Lesson 1 of 7</div><h1>Who does what</h1><p>An AI agent edits the report, an AI in chat keeps it honest, and a person makes every call that matters. Here's who does which job, and why.</p></div></div>
+<section class="step" id="s1"><h2><span class="num">1</span>Guess first</h2><p class="lead">Start with a guess. You'll find out why it matters by the end.</p><div class="q need" id="q1" data-answer="b" data-xp="15" data-good="Exactly." data-bad="Not quite."><p><b>Claude Code can edit every file in the report. Can it see what the report looks like?</b></p><div class="opts"><button type="button" class="btn opt" data-k="a" data-why="It edits text. Nothing on its side draws the pages.">Yes, it renders every page as it edits</button><button type="button" class="btn opt" data-k="b" data-why="Only Desktop turns the files into pictures, and only you are looking at Desktop. That&#x27;s why a person has to be in the loop.">No. Only you can, in Power BI Desktop</button><button type="button" class="btn opt" data-k="c" data-why="The validator checks the files against rules. It still never draws a page.">Only after it runs the validator</button></div><div class="fb" aria-live="polite"></div></div><p>That gap is the whole lesson. An <button type="button" class="term" data-term="agent">Agent</button> is fast with files and blind to pictures. A person can see but shouldn't hand-edit hundreds of files. So you split the work, and keep a <button type="button" class="term" data-term="hitl">human in the loop</button>.</p></section><section class="step locked" id="s2" data-manual="1"><h2><span class="num">2</span>Meet the three</h2><p class="lead">Three players, each with one thing the others can't do. Flip all three.</p><div class="who"><button type="button" class="card you" aria-label="You: tap to flip"><div class="in">
+<div class="face front"><div class="av">Y</div><h3>You</h3><small>in Power BI Desktop</small><div class="tapnote">Tap to flip</div></div>
+<div class="face back"><h3>You</h3>
+<div class="row"><b>Sees</b>The rendered report</div><div class="row"><b>Does</b>Sets examples by hand, approves, checks, saves</div><div class="row"><b>Never</b>Hand-edits the project files</div></div>
+</div></button><button type="button" class="card chat" aria-label="Claude chat: tap to flip"><div class="in">
+<div class="face front"><div class="av">C</div><h3>Claude chat</h3><small>the go-between</small><div class="tapnote">Tap to flip</div></div>
+<div class="face back"><h3>Claude chat</h3>
+<div class="row"><b>Sees</b>Only what you paste in</div><div class="row"><b>Does</b>Holds the rules, drafts every message, checks every reply</div><div class="row"><b>Never</b>Touches your files</div></div>
+</div></button><button type="button" class="card code" aria-label="Claude Code: tap to flip"><div class="in">
+<div class="face front"><div class="av">K</div><h3>Claude Code</h3><small>the agent in your folder</small><div class="tapnote">Tap to flip</div></div>
+<div class="face back"><h3>Claude Code</h3>
+<div class="row"><b>Sees</b>The project's text files</div><div class="row"><b>Does</b>Reads, edits, runs the validator, commits</div><div class="row"><b>Never</b>Opens Desktop or moves on without a go</div></div>
+</div></button></div><p>Chat is the odd one out. It has no hands at all. Its job is to be the <button type="button" class="term" data-term="gobetween">go-between</button>: a second pair of eyes that remembers the rules when you're tired.</p></section><section class="step locked" id="s3" data-manual="1"><h2><span class="num">3</span>Sort the jobs</h2><p class="lead">Tap a job, then tap who does it. A wrong drop costs a heart.</p><div class="chips" id="pool"><button type="button" class="btn task" data-id="t1" data-ok="you">Set a new format option by hand in the seed</button><button type="button" class="btn task" data-id="t2" data-ok="code">Read the seed files and find where the option is written</button><button type="button" class="btn task" data-id="t3" data-ok="chat">Spot that a pasted reply stops mid-sentence</button><button type="button" class="btn task" data-id="t4" data-ok="code">Rewrite 52 visual files and run the validator</button><button type="button" class="btn task" data-id="t5" data-ok="you">Click Refresh and look at the tiles</button><button type="button" class="btn task" data-id="t6" data-ok="chat">Draft the message to the agent, ending in a stop point</button><button type="button" class="btn task" data-id="t7" data-ok="you">Say “go ahead” after reading the proposal</button><button type="button" class="btn task" data-id="t8" data-ok="code">Run git status and commit</button></div><div class="lanes"><button type="button" class="lane you" data-lane="you" aria-label="Give to You"><h4><i></i>You</h4></button><button type="button" class="lane chat" data-lane="chat" aria-label="Give to Claude chat"><h4><i></i>Claude chat</h4></button><button type="button" class="lane code" data-lane="code" aria-label="Give to Claude Code"><h4><i></i>Claude Code</h4></button></div><div class="sortfb" aria-live="polite"></div></section><section class="step locked" id="s4" data-manual="1"><h2><span class="num">4</span>Walk the loop</h2><p class="lead">One change goes round this loop once. Step through it and watch the colours: count how often the agent acts without you in between.</p><div class="loopwrap"><svg class="ring" viewBox="0 0 300 300" role="img" aria-label="The loop, seven steps"><path class="arc" data-i="0" d="M172.3 40.2 A112 112 0 0 1 221.9 64.2"/><path class="arc" data-i="1" d="M249.7 99.0 A112 112 0 0 1 262.0 152.7"/><path class="arc" data-i="2" d="M252.1 196.1 A112 112 0 0 1 217.7 239.2"/><path class="arc" data-i="3" d="M177.6 258.6 A112 112 0 0 1 122.4 258.6"/><path class="arc" data-i="4" d="M82.3 239.2 A112 112 0 0 1 47.9 196.1"/><path class="arc" data-i="5" d="M38.0 152.7 A112 112 0 0 1 50.3 99.0"/><path class="arc" data-i="6" d="M78.1 64.2 A112 112 0 0 1 127.7 40.2"/><g transform="translate(96,128)"><circle r="7" fill="var(--gold)"/><text x="14" y="5" font-size="14" font-weight="800" fill="var(--ink)">You</text></g><g transform="translate(96,150)"><circle r="7" fill="var(--purple)"/><text x="14" y="5" font-size="14" font-weight="800" fill="var(--ink)">Claude chat</text></g><g transform="translate(96,172)"><circle r="7" fill="var(--blue)"/><text x="14" y="5" font-size="14" font-weight="800" fill="var(--ink)">Claude Code</text></g><g class="node" data-i="0" tabindex="0" role="button" aria-label="Step 1: Set it by hand in the seed"><circle cx="150.0" cy="38.0" r="20" fill="var(--gold)" stroke="var(--gold-d)"/><text x="150.0" y="44.0" text-anchor="middle" fill="#fff">1</text></g><g class="node" data-i="1" tabindex="0" role="button" aria-label="Step 2: Turn it into a message"><circle cx="237.6" cy="80.2" r="20" fill="var(--purple)" stroke="var(--purple-d)"/><text x="237.6" y="86.2" text-anchor="middle" fill="#fff">2</text></g><g class="node" data-i="2" tabindex="0" role="button" aria-label="Step 3: Read and propose"><circle cx="259.2" cy="174.9" r="20" fill="var(--blue)" stroke="var(--blue-d)"/><text x="259.2" y="180.9" text-anchor="middle" fill="#fff">3</text></g><g class="node" data-i="3" tabindex="0" role="button" aria-label="Step 4: Paste it back, then decide"><circle cx="198.6" cy="250.9" r="20" fill="var(--gold)" stroke="var(--gold-d)"/><text x="198.6" y="256.9" text-anchor="middle" fill="#fff">4</text></g><g class="node" data-i="4" tabindex="0" role="button" aria-label="Step 5: Build, validate, stop"><circle cx="101.4" cy="250.9" r="20" fill="var(--blue)" stroke="var(--blue-d)"/><text x="101.4" y="256.9" text-anchor="middle" fill="#fff">5</text></g><g class="node" data-i="5" tabindex="0" role="button" aria-label="Step 6: Look at it in Desktop"><circle cx="40.8" cy="174.9" r="20" fill="var(--gold)" stroke="var(--gold-d)"/><text x="40.8" y="180.9" text-anchor="middle" fill="#fff">6</text></g><g class="node" data-i="6" tabindex="0" role="button" aria-label="Step 7: Commit"><circle cx="62.4" cy="80.2" r="20" fill="var(--blue)" stroke="var(--blue-d)"/><text x="62.4" y="86.2" text-anchor="middle" fill="#fff">7</text></g></svg><div><div class="loopcard" id="lc"></div><div class="loopnav"><button type="button" class="btn" id="lprev">Back</button><button type="button" class="btn primary" id="lnext">Next step</button></div></div></div><div id="loopq" hidden><div class="q need" id="q4" data-answer="b" data-xp="15" data-good="Right." data-bad="Not quite."><p><b>Look at the colours again. How often does Claude Code act twice in a row, with no gold step between?</b></p><div class="opts"><button type="button" class="btn opt" data-k="a" data-why="Steps 5 and 7 are both blue, but step 6, your check in Desktop, sits between them.">Twice</button><button type="button" class="btn opt" data-k="b" data-why="Every blue step is followed by gold or purple. Each time it stops, a person or chat looks before it goes on.">Never</button><button type="button" class="btn opt" data-k="c" data-why="Step 7 follows step 6, which is yours. There&#x27;s always a check in between.">Once, at the end</button></div><div class="fb" aria-live="polite"></div></div></div></section><section class="step locked" id="s5"><h2><span class="num">5</span>Why a go-between?</h2><div class="q need" id="q5" data-answer="b" data-xp="20" data-good="That&#x27;s it." data-bad="Not quite."><p><b>Chat can't open a single file. So why keep it in the loop?</b></p><div class="opts"><button type="button" class="btn opt" data-k="a" data-why="Speed isn&#x27;t the point. You&#x27;d often be quicker on your own.">It's faster than typing to Claude Code yourself</button><button type="button" class="btn opt" data-k="b" data-why="It&#x27;s a second guardrail that doesn&#x27;t get tired, and it catches a cut-off reply or a missed step before the agent acts on it.">It checks each reply against the rules, and each message ends in a stop point</button><button type="button" class="btn opt" data-k="c" data-why="It reads English fine. The trouble is that it will happily act on a vague message.">Claude Code can't read plain English</button></div><div class="fb" aria-live="polite"></div></div><p>You'll meet each <button type="button" class="term" data-term="guardrail">guardrail</button> properly in the next lessons: the <button type="button" class="term" data-term="seed">seed</button>, the <button type="button" class="term" data-term="stoppoint">stop point</button>, the <button type="button" class="term" data-term="validator">validator</button>, the <button type="button" class="term" data-term="refresh">Refresh</button> and the <button type="button" class="term" data-term="commit">commit</button>.</p></section>
+<div class="finish" aria-live="polite"><svg width="90" height="90" viewBox="0 0 120 120" aria-hidden="true">
+<circle cx="60" cy="62" r="52" fill="#2A9D90"/><circle cx="60" cy="62" r="52" fill="none" stroke="#0A5C55" stroke-width="6"/>
+<circle cx="60" cy="62" r="30" fill="#D3F1EC"/>
+<path d="M60 4 l10 10 -10 10" fill="none" stroke="#0A5C55" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="48" cy="56" r="9" fill="#fff"/><circle cx="72" cy="56" r="9" fill="#fff"/>
+<circle cx="50" cy="57" r="5" fill="#2D3439"/><circle cx="74" cy="57" r="5" fill="#2D3439"/>
+<path d="M46 72 Q60 84 74 72" stroke="#2D3439" stroke-width="5" fill="none" stroke-linecap="round"/></svg><h2>Lesson complete</h2>
+<div class="chips"><span class="chip">⚡ <span class="fx">0</span> XP</span><span class="chip">❤️ <span class="fh">3</span> left</span></div>
+<a data-pbs="next-label" class="btn primary" href="../why-the-report-is-text/index.html">Next: Why the report is text</a><div class="series"><a href="index.html" data-n="01" title="Who does what">1</a><a href="../why-the-report-is-text/index.html" data-n="02" title="Why the report is text">2</a><a href="../seed-first/index.html" data-n="03" title="Seed first">3</a><a href="../propose-then-wait/index.html" data-n="04" title="Propose, then wait">4</a><a href="../build-validate-stop/index.html" data-n="05" title="Build, validate, stop">5</a><a href="../check-in-desktop/index.html" data-n="06" title="You check in Desktop">6</a><a href="../when-the-loop-breaks/index.html" data-n="07" title="When the loop breaks">7</a></div></div>
+  <nav class="pbs-pn" data-pbs-row aria-label="Lesson navigation">
+    <a class="pbs-prev" data-pbs="prev" href="../../03-model/check-it-landed/index.html">&larr; The model layer: Check it landed</a>
+    <span class="pbs-mid"><a class="pbs-map" href="../../index.html">Course map</a></span>
+    <a class="pbs-next" data-pbs="next" href="../why-the-report-is-text/index.html">Why the report is text &rarr;</a>
+  </nav>
+</main>
+<footer>Part of a series on working with a coding agent on a Power BI report, with a person in the loop. Tap any <span style="color:var(--blue-d);border-bottom:2px dotted var(--blue)">dotted word</span> for a definition.</footer>
+  <div class="pbs-footer pbs-standalone">
+  <p class="pbs-course"><b>Conducting the agent</b> · Building a Power BI model with Claude Code</p>
+  <p class="pbs-credit">Designed and built by Liz Barnes with the assistance of Claude Code.</p>
+  <p class="pbs-licence">© 2026 Liz Barnes. Licensed under <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a>.</p>
+  <p class="pbs-links"><span class="pbs-author">Elizabeth Cecilia</span> · <a href="https://www.linkedin.com/in/liz-barnes-7365b85" target="_blank" rel="noopener">LinkedIn</a> · <a href="../../about.html#work-with-me">Work with me</a> · <a href="../../about.html">About</a> · <a href="../../index.html">Course map</a></p>
+</div>
+<script>
+(function(){
+const G = {"agent": ["Agent", "An AI that doesn't just answer but acts: it reads files, runs commands and edits code. Here that's Claude Code."], "hitl": ["Human in the loop", "A way of working where the AI can't finish a step on its own. A person approves, checks or does part of every cycle."], "gobetween": ["Go-between", "Claude in chat. It can't touch the files, but it holds the rules, drafts every message to the agent and checks every reply."], "pbip": ["PBIP", "Power BI Project: a report saved as a folder of plain-text files instead of one binary .pbix. Text is what an agent can read and edit."], "render": ["Render", "Drawing the report as pictures on screen. Only Power BI Desktop does this, so only the person can see the result."], "seed": ["Seed project", "A small practice report. The person sets a new option there by hand, and the agent reads how Desktop wrote it before copying it."], "stoppoint": ["Stop point", "The last line of every message to the agent: what it may do, and where it must stop and wait."], "validator": ["Validator", "A script the agent runs after every build. It checks the files against rules and prints PASS or FAIL."], "guardrail": ["Guardrail", "Anything that stops an agent from going somewhere it shouldn't: a rule, a check, a stop point or a person saying no."], "harness": ["Harness", "Everything wrapped around the model that lets it act: its tools, its permissions, its instructions and the checks on its output."], "commit": ["Commit", "A saved snapshot in git. If a later change goes wrong, you can go back to it."], "refresh": ["Refresh", "Home > Refresh in Desktop. It reloads the data so new tables and columns actually fill in."]};
+const LESSON = "01";
+const store = {
+  get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+};
+let hearts = 3, xp = 0;
+const steps = [...document.querySelectorAll('.step')];
+const bar = document.querySelector('.bar i');
+const hEl = document.querySelector('.stat.hearts b'), xEl = document.querySelector('.stat.xp b');
+function bump(el){el.parentElement.classList.remove('hit');void el.offsetWidth;el.parentElement.classList.add('hit')}
+function addXp(n){xp+=n;xEl.textContent=xp;bump(xEl)}
+function loseHeart(){if(hearts>0){hearts--;hEl.textContent=hearts;bump(hEl)}}
+function progress(){const d=steps.filter(s=>s.classList.contains('done')).length;bar.style.width=(100*d/steps.length)+'%'}
+function check(st){if(!st||st.dataset.manual)return;if(!st.querySelector('.need:not([data-solved])'))Loop.complete(st)}
+window.Loop = {
+  addXp, loseHeart, check,
+  complete(step){
+    if(step.classList.contains('done'))return;
+    step.classList.add('done');progress();
+    const next=steps[steps.indexOf(step)+1];
+    if(next){next.classList.remove('locked');}
+    else finish();
+  }
+};
+// single-answer questions: <div class="q" data-answer="b" data-xp="10">
+document.querySelectorAll('.q').forEach(q=>{
+  const opts=[...q.querySelectorAll('.opt')], fb=q.querySelector('.fb');
+  opts.forEach(o=>o.addEventListener('click',()=>{
+    if(q.dataset.solved)return;
+    const ok=o.dataset.k===q.dataset.answer;
+    o.classList.remove('wrong');void o.offsetWidth;
+    o.classList.add(ok?'right':'wrong');
+    fb.className='fb show '+(ok?'good':'bad');
+    fb.innerHTML=(ok?'<b>'+(q.dataset.good||'Nice.')+'</b> ':'<b>'+(q.dataset.bad||'Not quite.')+'</b> ')+'<span>'+o.dataset.why+'</span>';
+    if(ok){q.dataset.solved=1;opts.forEach(x=>x.disabled=true);addXp(+(q.dataset.xp||10));
+      check(q.closest('.step'));}
+    else{loseHeart();o.disabled=true;}
+  }));
+});
+// order widgets: tap bank items into slots, then Check
+document.querySelectorAll('.order').forEach(w=>{
+  const bank=w.querySelector('.bank'),slots=w.querySelector('.slots'),btn=w.querySelector('.chk'),fb=w.querySelector('.fb'),n=bank.children.length;
+  function upd(){btn.disabled=slots.children.length!==n}
+  w.addEventListener('click',e=>{const it=e.target.closest('.oi');if(!it||w.dataset.solved)return;
+    (it.parentElement===bank?slots:bank).appendChild(it);it.classList.remove('bad');upd()});
+  btn.addEventListener('click',()=>{
+    const items=[...slots.children];let ok=true;
+    items.forEach((it,i)=>{const r=+it.dataset.pos===i;it.classList.toggle('bad',!r);it.classList.toggle('good',r);if(!r)ok=false});
+    fb.className='fb show '+(ok?'good':'bad');
+    if(ok){fb.innerHTML='<b>In order.</b> <span>'+w.dataset.why+'</span>';w.dataset.solved=1;btn.disabled=true;addXp(+(w.dataset.xp||15));check(w.closest('.step'))}
+    else{fb.innerHTML='<b>Not yet.</b> <span>The red ones are in the wrong place. Tap them to send them back.</span>';loseHeart()}
+  });
+});
+// tap-to-open explorers
+document.querySelectorAll('.tapall').forEach(w=>{
+  const panel=w.querySelector('.tap-panel'),min=+(w.dataset.min||3),seen=new Set();
+  w.querySelectorAll('.tap').forEach(t=>t.addEventListener('click',()=>{
+    w.querySelectorAll('.tap').forEach(x=>x.classList.toggle('on',x===t));
+    panel.innerHTML=t.querySelector('template').innerHTML;
+    if(!seen.has(t)){seen.add(t);addXp(3)}
+    const c=w.querySelector('.tapcount');if(c)c.textContent=Math.min(seen.size,min)+' of '+min;
+    if(seen.size>=min&&!w.dataset.solved){w.dataset.solved=1;check(w.closest('.step'))}
+  }));
+});
+// glossary popup
+const pop=document.createElement('div');pop.className='pop';pop.setAttribute('role','tooltip');document.body.appendChild(pop);
+let openT=null;
+function hide(){pop.classList.remove('show');openT=null}
+document.addEventListener('click',e=>{
+  const t=e.target.closest('.term');
+  if(!t){if(!e.target.closest('.pop'))hide();return}
+  if(openT===t){hide();return}
+  const [name,def]=G[t.dataset.term];
+  pop.innerHTML='<b></b>';pop.firstChild.textContent=name;pop.append(def);
+  pop.classList.add('show');openT=t;
+  const r=t.getBoundingClientRect(),w=pop.offsetWidth,h=pop.offsetHeight;
+  let x=Math.min(Math.max(8,r.left),innerWidth-w-8), y=r.bottom+8;
+  if(y+h>innerHeight-8)y=r.top-h-8;
+  pop.style.left=x+'px';pop.style.top=y+'px';
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')hide()});
+addEventListener('scroll',hide,{passive:true});
+// series dots
+const seen=store.get('cta-loop-series-done')||[];
+document.querySelectorAll('.series a').forEach(a=>{if(a.dataset.n===LESSON)a.classList.add('here');else if(seen.includes(a.dataset.n))a.classList.add('seen')});
+function finish(){
+  const f=document.querySelector('.finish');
+  f.querySelector('.fx').textContent=xp;f.querySelector('.fh').textContent=hearts;
+  f.classList.add('show');f.scrollIntoView({block:'center'});
+  if(!seen.includes(LESSON)){seen.push(LESSON);store.set('cta-loop-series-done',seen)}
+  confetti();
+}
+function confetti(){
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+  const c=document.createElement('canvas');c.className='confetti';document.body.appendChild(c);
+  const x=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;
+  const cols=['#0F7C72','#3A6EA5','#F2B33D','#C8413A','#9466C4'];
+  const P=Array.from({length:140},()=>({x:Math.random()*c.width,y:-20-Math.random()*c.height*.5,vx:(Math.random()-.5)*3,vy:2+Math.random()*3,r:Math.random()*6.28,s:6+Math.random()*6,c:cols[Math.random()*5|0]}));
+  let t=0;(function f(){x.clearRect(0,0,c.width,c.height);P.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=.1;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);x.restore()});
+  if(++t<220)requestAnimationFrame(f);else c.remove()})();
+}
+progress();
+})();
+</script><script>
+(function(){
+// flip cards
+const s2=document.getElementById('s2'),flipped=new Set();
+s2.querySelectorAll('.card').forEach((c,i)=>c.addEventListener('click',()=>{c.classList.toggle('flip');
+  if(!flipped.has(i)){flipped.add(i);Loop.addXp(5);if(flipped.size===3)Loop.complete(s2)}}));
+// sort
+const s3=document.getElementById('s3'),fb=s3.querySelector('.sortfb');let pick=null,left=8;
+const WHY={you:'Only you have Desktop and the final say.',chat:'Chat has no hands. It reads and writes messages.',code:'The agent works in the files and the terminal.'};
+s3.querySelectorAll('.task').forEach(t=>t.addEventListener('click',()=>{
+  s3.querySelectorAll('.task').forEach(x=>x.classList.remove('pick'));pick=t;t.classList.add('pick');
+  s3.querySelectorAll('.lane').forEach(l=>l.classList.add('armed'));fb.textContent='';}));
+s3.querySelectorAll('.lane').forEach(l=>l.addEventListener('click',()=>{
+  if(!pick)return;const ok=pick.dataset.ok===l.dataset.lane;
+  if(ok){const d=document.createElement('div');d.className='placed';d.textContent=pick.textContent;l.appendChild(d);pick.remove();
+    Loop.addXp(5);fb.style.color='var(--green-d)';fb.textContent='Yes. '+WHY[l.dataset.lane];left--;pick=null;
+    s3.querySelectorAll('.lane').forEach(x=>x.classList.remove('armed'));
+    if(!left){fb.textContent='All sorted. Notice that every “decide” job landed with you.';Loop.complete(s3)}}
+  else{pick.classList.remove('wrong');void pick.offsetWidth;pick.classList.add('wrong');Loop.loseHeart();
+    fb.style.color='var(--red-d)';fb.textContent='Not that one. '+WHY[l.dataset.lane]}
+}));
+// loop
+const L=[["you", "Set it by hand in the seed", "You change one option in the small seed report in Power BI Desktop, save and close. Now there's a real example of how Desktop writes it."], ["chat", "Turn it into a message", "Chat writes the message for Claude Code: what changed, where, and a stop point: read and propose, then wait."], ["code", "Read and propose", "Claude Code reads the seed's text files, finds the property and proposes where it goes in the real report. Then it stops."], ["you", "Paste it back, then decide", "You paste the proposal into chat. Chat checks it against the rules and flags anything odd. Only you say go."], ["code", "Build, validate, stop", "Claude Code edits the report files, runs the validator, lists every file it rewrote and stops again."], ["you", "Look at it in Desktop", "You open the real report, click Refresh, check the result with your own eyes, then save and close."], ["code", "Commit", "Claude Code runs git status and commits. The snapshot is the new safe point to come back to."]],A={"you": ["You", "var(--gold)", "var(--gold-d)"], "chat": ["Claude chat", "var(--purple)", "var(--purple-d)"], "code": ["Claude Code", "var(--blue)", "var(--blue-d)"]},s4=document.getElementById('s4'),lc=document.getElementById('lc');let cur=-1;const seen=new Set();
+function show(i){cur=i;seen.add(i);const [w,h,p]=L[i],a=A[w];
+  lc.innerHTML='<span class="who-tag" style="background:'+a[2]+'">'+a[0]+'</span><h3>'+(i+1)+'. '+h+'</h3><p>'+p+'</p>';
+  lc.style.borderColor=a[2];
+  s4.querySelectorAll('.node').forEach(n=>n.classList.toggle('on',+n.dataset.i===i));
+  s4.querySelectorAll('.arc').forEach(r=>r.classList.toggle('lit',+r.dataset.i<i));
+  document.getElementById('lnext').textContent=i===L.length-1?'Back to the start':'Next step';
+  if(seen.size===L.length){const lq=document.getElementById('loopq');if(lq.hidden){lq.hidden=false;s4.querySelectorAll('.arc').forEach(r=>r.classList.add('lit'))}}}
+document.getElementById('lnext').onclick=()=>show((cur+1)%L.length);
+document.getElementById('lprev').onclick=()=>show(Math.max(0,cur-1));
+s4.querySelectorAll('.node').forEach(n=>{n.addEventListener('click',()=>show(+n.dataset.i));n.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();show(+n.dataset.i)}})});
+lc.innerHTML='<p class="lead">Press <b>Next step</b> or tap a number.</p>';
+document.querySelector('#q4 .opts').addEventListener('click',()=>{if(document.getElementById('q4').dataset.solved)Loop.complete(s4)});
+})();
+</script><script src="../../assets/js/lessons-data.js"></script>
+<script src="../../assets/js/nav.js" data-page="04-claude/who-does-what"></script>
+</body></html>

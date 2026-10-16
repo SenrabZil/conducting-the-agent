@@ -1,0 +1,80 @@
+/* Shared course footer and navigation. Uses each page's own colour tokens,
+   so it follows the page's template and dark mode. */
+.pbs-footer {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 8px 0 40px;
+  color: var(--slate, #5E6870);
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+.pbs-footer.pbs-standalone { max-width: 760px; padding: 0 18px 40px; }
+.pbs-footer p { margin: 0 0 4px; }
+.pbs-footer a { color: var(--blue-d, #2B5A8C); font-weight: 800; text-decoration: none; }
+.pbs-footer a:hover { text-decoration: underline; }
+.pbs-author { color: var(--ink, #2D3439); font-weight: 800; }
+.pbs-course b { color: var(--ink, #2D3439); font-weight: 900; }
+
+/* The one bottom navigation row on every lesson: ← previous · Course map · next → */
+.pbs-pn {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: baseline;
+  gap: 8px 16px;
+  padding: 26px 0 0;
+  font-weight: 800;
+  font-size: 14.5px;
+  line-height: 1.4;
+}
+.pbs-pn a { color: var(--blue-d, #2B5A8C); text-decoration: none; }
+.pbs-pn a:hover { text-decoration: underline; }
+.pbs-pn .pbs-prev { text-align: left; min-width: 0; }
+.pbs-pn .pbs-mid { text-align: center; white-space: nowrap; color: var(--slate, #5E6870); }
+.pbs-pn .pbs-next { text-align: right; min-width: 0; }
+.pbs-pn .gltrig { font-size: inherit; }
+
+@media (max-width: 560px) {
+  .pbs-pn { grid-template-columns: 1fr; gap: 10px; }
+  .pbs-pn span.pbs-prev:empty, .pbs-pn span.pbs-next:empty { display: none; }
+}
+
+/* About button: right-hand end of every page's header bar */
+.pbs-about {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--sans, "Nunito", system-ui, sans-serif);
+  font-weight: 800;
+  font-size: 13.5px;
+  line-height: 1.2;
+  color: var(--slate, #5E6870);
+  background: transparent;
+  border: 2px solid var(--line, #DEE3E6);
+  border-radius: 12px;
+  padding: 5px 10px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.pbs-about:hover { color: var(--blue-d, #2B5A8C); border-color: var(--blue-d, #2B5A8C); }
+@media (max-width: 420px) {
+  .pbs-about { font-size: 12.5px; padding: 4px 8px; }
+}
+
+/* Contract-work line at the end of the closing lessons */
+.pbs-footer .pbs-work {
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border: 2px solid var(--line, #DEE3E6);
+  border-radius: 12px;
+  color: var(--ink, #2D3439);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* Very narrow phones (320-360px): let each template's header shrink to make room for About */
+@media (max-width: 360px) {
+  header .bar { gap: 8px; }
+  header .bar .pbar { min-width: 24px; }
+  header .bar .home span { display: none; }
+  header.top .top-in { gap: 8px; padding-left: 12px; padding-right: 12px; }
+}

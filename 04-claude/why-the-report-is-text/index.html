@@ -1,0 +1,306 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Why the report is text · Three in the loop · Conducting the agent</title>
+<meta name="description" content="The report is saved as PBIP text files so an agent can read and edit it.">
+<link rel="stylesheet" href="../../assets/css/course.css"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFFFFF; --soft:#F3F5F6; --panel:#FFFFFF; --ink:#2D3439; --slate:#5E6870; --line:#DEE3E6;
+  --green:#0F7C72; --green-d:#0A5C55; --green-l:#D3F1EC;
+  --blue:#3A6EA5; --blue-d:#2B5A8C; --blue-l:#E3ECF6;
+  --gold:#F2B33D; --gold-d:#C98E1C; --gold-l:#FBF1D9;
+  --red:#C8413A; --red-d:#A8322C; --red-l:#FAE2DF;
+  --purple:#9466C4; --purple-d:#7A50AE; --purple-l:#EFE7F8;
+  --deep:#1E3A5F; --hdr:rgba(255,255,255,.94);
+  --mono:ui-monospace,"Cascadia Code",Consolas,"Roboto Mono",monospace;
+  --sans:"Nunito",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12191D; --soft:#1B252A; --panel:#1B252A; --ink:#EEF2F4; --slate:#AAB5BC; --line:#36434B;
+  --green-l:#123A36; --blue-l:#1C2E45; --gold-l:#3A2F17; --red-l:#4A211E; --purple-l:#2F2440;
+  --hdr:rgba(18,25,29,.94); --deep:#3A6EA5;
+}}
+:root[data-theme="dark"]{
+  --bg:#12191D; --soft:#1B252A; --panel:#1B252A; --ink:#EEF2F4; --slate:#AAB5BC; --line:#36434B;
+  --green-l:#123A36; --blue-l:#1C2E45; --gold-l:#3A2F17; --red-l:#4A211E; --purple-l:#2F2440;
+  --hdr:rgba(18,25,29,.94); --deep:#3A6EA5;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-behavior:smooth;scroll-padding-top:calc(76px + env(safe-area-inset-top,0px))}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.55;font-weight:600}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--blue);outline-offset:3px;border-radius:8px}
+
+/* top bar: progress, hearts, xp */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--hdr);backdrop-filter:blur(6px);border-bottom:2px solid var(--line)}
+.top-in{max-width:760px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;gap:14px}
+.home{font-weight:900;color:var(--slate);text-decoration:none;font-size:15px;white-space:nowrap}
+.bar{flex:1;height:16px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--green);border-radius:99px;transition:width .5s cubic-bezier(.3,1.4,.5,1);box-shadow:inset 0 -4px 0 rgba(0,0,0,.08)}
+.stat{display:flex;align-items:center;gap:4px;font-weight:900;font-size:16px}
+.stat.hearts{color:var(--red)} .stat.xp{color:var(--gold-d)}
+.stat.hit{animation:pop .4s}
+@keyframes pop{50%{transform:scale(1.35)}}
+
+main{max-width:760px;margin:0 auto;padding:22px 18px 80px}
+.hero{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center;margin:14px 0 26px}
+.hero h1{font-size:clamp(28px,5vw,40px);line-height:1.1;margin:4px 0 6px;font-weight:900;color:var(--deep)}
+.hero .kick{font-size:15px;color:var(--slate);font-weight:800}
+.hero p{margin:0;color:var(--slate);max-width:52ch}
+@media (max-width:560px){.hero{grid-template-columns:1fr}.hero svg{width:96px}}
+
+.step{border:2px solid var(--line);border-radius:18px;padding:20px 20px 22px;margin:0 0 22px;background:var(--panel)}
+.step.locked{opacity:.35;pointer-events:none;filter:saturate(.3)}
+.step h2{font-size:22px;margin:0 0 4px;font-weight:900}
+.step .num{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--blue);color:#fff;font-size:15px;margin-right:8px;vertical-align:2px}
+.step.done .num{background:var(--green)}
+.step p{margin:8px 0;max-width:62ch}
+.lead{color:var(--slate)}
+
+/* chunky 3D buttons */
+.btn{display:inline-block;text-decoration:none;border:2px solid var(--line);border-bottom-width:5px;background:var(--panel);border-radius:14px;padding:12px 16px;font-weight:800;cursor:pointer;text-align:left;transition:transform .08s}
+.btn:active{transform:translateY(3px);border-bottom-width:2px;margin-bottom:3px}
+.btn.primary{background:var(--green);border-color:var(--green-d);color:#fff}
+.btn.primary:disabled{background:var(--line);border-color:var(--line);color:var(--slate);cursor:default}
+.opts{display:grid;gap:10px;margin:14px 0 6px}
+.opt.sel{border-color:var(--blue);background:var(--blue-l)}
+.opt.right{border-color:var(--green-d);background:var(--green-l)}
+.opt.wrong{border-color:var(--red-d);background:var(--red-l);animation:shake .4s}
+.opt[disabled]{cursor:default}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+
+.fb{display:none;margin-top:12px;border-radius:14px;padding:12px 16px;font-weight:700}
+.fb.show{display:block}
+.fb.good{background:var(--green-l);color:var(--green-d)}
+.fb.bad{background:var(--red-l);color:var(--red-d)}
+.fb b{font-weight:900}
+.fb span{color:var(--ink);font-weight:600}
+
+/* glossary terms */
+.term{border:0;background:none;padding:0;font-weight:800;color:var(--blue-d);border-bottom:2px dotted var(--blue);cursor:help}
+.pop{position:fixed;z-index:50;max-width:300px;background:var(--deep);color:#fff;border-radius:14px;padding:12px 14px;font-size:15px;line-height:1.45;box-shadow:0 6px 0 rgba(0,0,0,.18);display:none}
+:root[data-theme="dark"] .pop{background:#24476E}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pop{background:#24476E}}
+.pop b{display:block;font-size:16px;margin-bottom:2px}
+.pop.show{display:block}
+
+/* finish */
+.finish{text-align:center;border:2px solid var(--gold);background:var(--gold-l);border-radius:18px;padding:26px 18px;display:none}
+.finish.show{display:block;animation:pop .5s}
+.finish h2{font-size:28px;margin:6px 0;color:var(--gold-d);font-weight:900}
+.finish .chips{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:12px 0 18px}
+.finish .chip{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:8px 14px;font-weight:900}
+.series{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:18px}
+.series a{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;border:2px solid var(--line);border-bottom-width:4px;text-decoration:none;color:var(--slate);font-weight:900;font-size:14px;background:var(--panel)}
+.series a.here{border-color:var(--blue-d);background:var(--blue);color:#fff}
+.series a.seen{border-color:var(--green-d);background:var(--green);color:#fff}
+canvas.confetti{position:fixed;inset:0;pointer-events:none;z-index:60}
+
+.order .bank,.order .slots{display:flex;flex-wrap:wrap;gap:8px;min-height:56px;border-radius:14px;padding:8px}
+.order .slots{border:2px dashed var(--line);background:var(--soft);flex-direction:column;counter-reset:o}
+.order .slots:empty::before{content:"Tap the steps in order";color:var(--slate);padding:8px}
+.order .slots .oi{counter-increment:o} .order .slots .oi::before{content:counter(o) ". ";color:var(--slate)}
+.oi{font-size:15px;padding:9px 12px}
+.oi.good{border-color:var(--green-d);background:var(--green-l)} .oi.bad{border-color:var(--red-d);background:var(--red-l);animation:shake .4s}
+.chk{margin-top:10px}
+.tapgrid{display:grid;grid-template-columns:minmax(0,260px) 1fr;gap:14px;margin-top:12px}
+@media (max-width:620px){.tapgrid{grid-template-columns:1fr}}
+.tree{font-family:var(--mono);font-size:14px;display:flex;flex-direction:column;gap:2px}
+.tree .dir{color:var(--slate);padding:4px 6px;font-weight:700}
+.tap{border:2px solid transparent;background:none;text-align:left;border-radius:10px;padding:5px 8px;cursor:pointer;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--blue-d)}
+.tap:hover{background:var(--blue-l)} .tap.on{border-color:var(--blue);background:var(--blue-l)}
+.tap-panel{border:2px solid var(--line);border-radius:14px;padding:14px;min-height:160px;font-size:15.5px}
+.tapcount{font-size:14px;color:var(--slate);font-weight:800}
+.tb{background:#101A1F;color:#D6E4EA;border-radius:14px;padding:12px 14px;font-family:var(--mono);font-size:13.5px;line-height:1.55;overflow-x:auto;white-space:pre;margin:10px 0}
+.tb .k{color:#9DBCE0} .tb .s{color:#A8E3DA} .tb .n{color:#F5CF7A} .tb .c{color:#7E929C}
+.spot .opts{gap:0;background:#101A1F;border-radius:14px;padding:8px;overflow-x:auto}
+.spot .opt{font-family:var(--mono);font-size:13.5px;font-weight:600;background:transparent;color:#D6E4EA;border:2px solid transparent;border-bottom-width:2px;border-radius:8px;padding:5px 8px;white-space:pre-wrap}
+.spot .opt:hover{border-color:#36434B}
+.spot .opt.right{background:#123A36;border-color:var(--green);color:#D3F1EC}
+.spot .opt.wrong{background:#4A211E;border-color:var(--red);color:#FAE2DF}
+.spot .opt:active{transform:none;margin-bottom:0;border-bottom-width:2px}
+footer{max-width:760px;margin:0 auto;padding:0 18px 30px;color:var(--slate);font-size:14px}
+
+.theme{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px;align-items:start}
+@media (max-width:620px){.theme{grid-template-columns:1fr}}
+.pane{border:2px solid var(--line);border-radius:14px;padding:14px}
+.pane h4{margin:0 0 8px;font-size:15px;color:var(--slate)}
+.slider{width:100%;accent-color:var(--blue)}
+.tile{margin:10px auto 0;border:2px solid var(--line);border-radius:10px;background:var(--soft);transition:padding .2s;width:max-content}
+.tile div{background:var(--blue-l);border-radius:6px;padding:6px 12px;font-weight:900;color:var(--blue-d)}
+.pad-val{font-weight:900;color:var(--blue-d)}
+</style><style>/* course build */
+/* long file paths scroll inside the tree, not the page */
+.tapgrid>*,.theme>*{min-width:0}.tree{overflow-x:auto}
+</style>
+<style id="cta-palette">:root{--gold-d:#8A6000;--orange:#B5571A;--ember-ink:#9A4A0C;--purple-d:#6E449E;}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--green-d:#5CCABD;--blue:#7FA8DA;--blue-d:#8DB4E2;--gold-d:#E9C46A;--red:#F07A70;--red-d:#F09088;--purple-d:#C3A6E8;--orange:#E8935A;--ember-ink:#E8935A;--deep:#8DB4E2;}:root:not([data-theme="light"]) .pop{background:#24476E}:root:not([data-theme="light"]) .xpfly,:root:not([data-theme="light"]) .bar .home{color:var(--green-d)}:root:not([data-theme="light"]) .series a.here,:root:not([data-theme="light"]) .step .num,:root:not([data-theme="light"]) .node .dot,:root:not([data-theme="light"]) .pbtn,:root:not([data-theme="light"]) .snum,:root:not([data-theme="light"]) .loop .n{color:#12191D}}:root[data-theme="dark"]{--green-d:#5CCABD;--blue:#7FA8DA;--blue-d:#8DB4E2;--gold-d:#E9C46A;--red:#F07A70;--red-d:#F09088;--purple-d:#C3A6E8;--orange:#E8935A;--ember-ink:#E8935A;--deep:#8DB4E2;}:root[data-theme="dark"] .pop{background:#24476E}:root[data-theme="dark"] .xpfly,:root[data-theme="dark"] .bar .home{color:var(--green-d)}:root[data-theme="dark"] .series a.here,:root[data-theme="dark"] .step .num,:root[data-theme="dark"] .node .dot,:root[data-theme="dark"] .pbtn,:root[data-theme="dark"] .snum,:root[data-theme="dark"] .loop .n{color:#12191D}</style>
+</head><body>
+<header class="top"><div class="top-in">
+<a class="home" href="../index.html">Three in the loop</a>
+<div class="bar" role="progressbar" aria-label="Lesson progress"><i></i></div>
+<span class="stat hearts" title="Hearts">❤️ <b>3</b></span><span class="stat xp" title="XP">⚡ <b>0</b></span>
+  <a class="pbs-about" href="../../about.html">About</a>
+</div></header>
+<main>
+<div class="hero"><svg width="110" height="110" viewBox="0 0 120 120" aria-hidden="true">
+<circle cx="60" cy="62" r="52" fill="#2A9D90"/><circle cx="60" cy="62" r="52" fill="none" stroke="#0A5C55" stroke-width="6"/>
+<circle cx="60" cy="62" r="30" fill="#D3F1EC"/>
+<path d="M60 4 l10 10 -10 10" fill="none" stroke="#0A5C55" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="48" cy="56" r="9" fill="#fff"/><circle cx="72" cy="56" r="9" fill="#fff"/>
+<circle cx="50" cy="57" r="5" fill="#2D3439"/><circle cx="74" cy="57" r="5" fill="#2D3439"/>
+<path d="M46 72 Q60 84 74 72" stroke="#2D3439" stroke-width="5" fill="none" stroke-linecap="round"/></svg><div><div class="kick">Lesson 2 of 7</div><h1>Why the report is text</h1><p>An agent can't click around Power BI Desktop. It can read and write text, so the report has to be text too.</p></div></div>
+<section class="step" id="s1"><h2><span class="num">1</span>Guess first</h2><div class="q need" id="q1" data-answer="b" data-xp="15" data-good="Yes." data-bad="Not quite."><p><b>The same report can be saved two ways. Which one can a coding agent safely edit?</b></p><div class="opts"><button type="button" class="btn opt" data-k="a" data-why="A .pbix is a compressed binary. The agent could only guess at it, and one wrong byte breaks the file.">sample.pbix, the single file</button><button type="button" class="btn opt" data-k="b" data-why="A Power BI Project is plain text, so the agent can read it, change one line and show you exactly what changed.">Report.pbip, the project folder</button><button type="button" class="btn opt" data-k="c" data-why="Only one of them is text. That difference is the reason the whole loop works.">Either, it makes no difference</button></div><div class="fb" aria-live="polite"></div></div><p>A <button type="button" class="term" data-term="pbip">PBIP</button> saves the report as a folder of small text files. The agent works there. Desktop still does the one thing text can't: it <button type="button" class="term" data-term="render">renders</button> the pages.</p></section><section class="step locked" id="s2"><h2><span class="num">2</span>Open the folder</h2><p class="lead">Open three files to see what the agent actually works on.</p><div class="tapall need" id="x2" data-min="3"><div class="tapgrid"><div class="tree"><div class="dir">report\</div><button type="button" class="tap" style="margin-left:14px">Report.pbip<template><p><b>The front door.</b> Double-click it and Desktop opens the whole project. It's a few lines of JSON that point at the two folders below.</p></template></button><div class="dir" style="margin-left:14px">Report.Report\definition\pages\…\visuals\</div><button type="button" class="tap" style="margin-left:28px">&lt;tile id&gt;\visual.json<template><p><b>One file per visual.</b> Position, size, title, and every format setting that differs from the theme.</p><div class="tb">{ <span class="k">"position"</span>: { <span class="k">"x"</span>: <span class="n">48</span>, <span class="k">"y"</span>: <span class="n">120</span> },
+  <span class="k">"visual"</span>: { <span class="k">"visualType"</span>: <span class="s">"card"</span>, … } }</div><p>The 52 information buttons meant 52 of these to add, then 52 groups. That's agent work.</p></template></button><div class="dir" style="margin-left:14px">Report.SemanticModel\definition\tables\</div><button type="button" class="tap" style="margin-left:28px">DimMeasureBasis.tmdl<template><p><b>The register table</b>, in TMDL, a plain-text model language. Every tooltip's short explanation is a row here, and a measure looks it up.</p><div class="tb"><span class="k">measure</span> <span class="s">'Explanation ov-watch'</span> =
+    CALCULATE(
+        SELECTEDVALUE(DimMeasureBasis[Explanation]),
+        DimMeasureBasis[MeasureKey] = <span class="s">"ov-watch"</span>)</div></template></button><div class="dir">sample.pbix</div><button type="button" class="tap" style="margin-left:14px">(frozen export)<template><p><b>One binary file.</b> The whole report zipped into a format made for Desktop, not for people or agents. It's the copy that was handed in, so the agent never opens it.</p></template></button></div><div><div class="tap-panel"><p class="lead">Tap a file to open it.</p></div><div class="tapcount">0 of 3</div></div></div></div></section><section class="step locked" id="s3"><h2><span class="num">3</span>The setting that wasn't there</h2><p class="lead">A real surprise from the project: the agent looked for a setting in the seed and found nothing. Drag the slider to see why.</p><div class="theme"><div class="pane"><h4>In Desktop: Format pane &gt; General &gt; Properties &gt; Padding</h4><input type="range" class="slider" id="pad" min="0" max="16" value="4" aria-label="Padding"><div>Padding: <span class="pad-val" id="pv">4</span> px <span class="lead">(the theme says 4)</span></div><div class="tile" id="tile"><div>1,240</div></div></div><div class="pane"><h4>What Desktop writes to visual.json</h4><div class="tb" id="js"></div></div></div><div id="q3wrap" hidden><div class="q need" id="q3" data-answer="b" data-xp="15" data-good="Exactly." data-bad="Not quite."><p><b>So why did the agent find nothing?</b></p><div class="opts"><button type="button" class="btn opt" data-k="a" data-why="That happens too (lesson 3), but here the file had saved fine.">The seed wasn't saved</button><button type="button" class="btn opt" data-k="b" data-why="Desktop only saves what differs from the theme. The example has to use a value the theme doesn&#x27;t.">The value matched the theme, so Desktop didn't write it</button><button type="button" class="btn opt" data-k="c" data-why="It was in the right file. There was just nothing to find.">The agent was reading the wrong folder</button></div><div class="fb" aria-live="polite"></div></div></div></section><section class="step locked" id="s4"><h2><span class="num">4</span>Two paddings</h2><p class="lead">Two options are both called “padding”. Here is how Desktop wrote each one in the seed.</p><div class="tb"><span class="c">// Outer frame of the visual</span>
+<span class="k">"visualContainerObjects"</span>: { <span class="k">"padding"</span>: [{ <span class="k">"properties"</span>: {
+  <span class="k">"top"</span>: <span class="n">8D</span> } }] }        <span class="c">// decimal, no selector</span>
+
+<span class="c">// Inner box of a card</span>
+<span class="k">"objects"</span>: { <span class="k">"padding"</span>: [{ <span class="k">"properties"</span>: {
+  <span class="k">"topMargin"</span>: <span class="n">8L</span> },
+  <span class="k">"selector"</span>: { … } }] }   <span class="c">// integer, with a selector</span></div><div class="q need" id="q4" data-answer="a" data-xp="20" data-good="That&#x27;s the one." data-bad="Not quite."><p><b>The agent had only read the first one. What would it have done with the card's inner box?</b></p><div class="opts"><button type="button" class="btn opt" data-k="a" data-why="Right. Same word, different place, different names, different number type. Only a real example shows that.">Written the outer-frame shape, which Desktop ignores for the inner box</button><button type="button" class="btn opt" data-k="b" data-why="Most of this isn&#x27;t documented. The seed is the documentation.">Found the right shape in the documentation</button><button type="button" class="btn opt" data-k="c" data-why="Agents rarely refuse. They make a confident guess, which is the risk.">Refused to change anything</button></div><div class="fb" aria-live="polite"></div></div></section>
+<div class="finish" aria-live="polite"><svg width="90" height="90" viewBox="0 0 120 120" aria-hidden="true">
+<circle cx="60" cy="62" r="52" fill="#2A9D90"/><circle cx="60" cy="62" r="52" fill="none" stroke="#0A5C55" stroke-width="6"/>
+<circle cx="60" cy="62" r="30" fill="#D3F1EC"/>
+<path d="M60 4 l10 10 -10 10" fill="none" stroke="#0A5C55" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="48" cy="56" r="9" fill="#fff"/><circle cx="72" cy="56" r="9" fill="#fff"/>
+<circle cx="50" cy="57" r="5" fill="#2D3439"/><circle cx="74" cy="57" r="5" fill="#2D3439"/>
+<path d="M46 72 Q60 84 74 72" stroke="#2D3439" stroke-width="5" fill="none" stroke-linecap="round"/></svg><h2>Lesson complete</h2>
+<div class="chips"><span class="chip">⚡ <span class="fx">0</span> XP</span><span class="chip">❤️ <span class="fh">3</span> left</span></div>
+<a data-pbs="next-label" class="btn primary" href="../seed-first/index.html">Next: Seed first</a><div class="series"><a href="../who-does-what/index.html" data-n="01" title="Who does what">1</a><a href="index.html" data-n="02" title="Why the report is text">2</a><a href="../seed-first/index.html" data-n="03" title="Seed first">3</a><a href="../propose-then-wait/index.html" data-n="04" title="Propose, then wait">4</a><a href="../build-validate-stop/index.html" data-n="05" title="Build, validate, stop">5</a><a href="../check-in-desktop/index.html" data-n="06" title="You check in Desktop">6</a><a href="../when-the-loop-breaks/index.html" data-n="07" title="When the loop breaks">7</a></div></div>
+  <nav class="pbs-pn" data-pbs-row aria-label="Lesson navigation">
+    <a class="pbs-prev" data-pbs="prev" href="../who-does-what/index.html">&larr; Who does what</a>
+    <span class="pbs-mid"><a class="pbs-map" href="../../index.html">Course map</a></span>
+    <a class="pbs-next" data-pbs="next" href="../seed-first/index.html">Seed first &rarr;</a>
+  </nav>
+</main>
+<footer>Part of a series on working with a coding agent on a Power BI report, with a person in the loop. Tap any <span style="color:var(--blue-d);border-bottom:2px dotted var(--blue)">dotted word</span> for a definition.</footer>
+  <div class="pbs-footer pbs-standalone">
+  <p class="pbs-course"><b>Conducting the agent</b> · Building a Power BI model with Claude Code</p>
+  <p class="pbs-credit">Designed and built by Liz Barnes with the assistance of Claude Code.</p>
+  <p class="pbs-licence">© 2026 Liz Barnes. Licensed under <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a>.</p>
+  <p class="pbs-links"><span class="pbs-author">Elizabeth Cecilia</span> · <a href="https://www.linkedin.com/in/liz-barnes-7365b85" target="_blank" rel="noopener">LinkedIn</a> · <a href="../../about.html#work-with-me">Work with me</a> · <a href="../../about.html">About</a> · <a href="../../index.html">Course map</a></p>
+</div>
+<script>
+(function(){
+const G = {"agent": ["Agent", "An AI that doesn't just answer but acts: it reads files, runs commands and edits code. Here that's Claude Code."], "hitl": ["Human in the loop", "A way of working where the AI can't finish a step on its own. A person approves, checks or does part of every cycle."], "gobetween": ["Go-between", "Claude in chat. It can't touch the files, but it holds the rules, drafts every message to the agent and checks every reply."], "pbip": ["PBIP", "Power BI Project: a report saved as a folder of plain-text files instead of one binary .pbix. Text is what an agent can read and edit."], "render": ["Render", "Drawing the report as pictures on screen. Only Power BI Desktop does this, so only the person can see the result."], "seed": ["Seed project", "A small practice report. The person sets a new option there by hand, and the agent reads how Desktop wrote it before copying it."], "stoppoint": ["Stop point", "The last line of every message to the agent: what it may do, and where it must stop and wait."], "validator": ["Validator", "A script the agent runs after every build. It checks the files against rules and prints PASS or FAIL."], "guardrail": ["Guardrail", "Anything that stops an agent from going somewhere it shouldn't: a rule, a check, a stop point or a person saying no."], "harness": ["Harness", "Everything wrapped around the model that lets it act: its tools, its permissions, its instructions and the checks on its output."], "commit": ["Commit", "A saved snapshot in git. If a later change goes wrong, you can go back to it."], "refresh": ["Refresh", "Home > Refresh in Desktop. It reloads the data so new tables and columns actually fill in."]};
+const LESSON = "02";
+const store = {
+  get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+};
+let hearts = 3, xp = 0;
+const steps = [...document.querySelectorAll('.step')];
+const bar = document.querySelector('.bar i');
+const hEl = document.querySelector('.stat.hearts b'), xEl = document.querySelector('.stat.xp b');
+function bump(el){el.parentElement.classList.remove('hit');void el.offsetWidth;el.parentElement.classList.add('hit')}
+function addXp(n){xp+=n;xEl.textContent=xp;bump(xEl)}
+function loseHeart(){if(hearts>0){hearts--;hEl.textContent=hearts;bump(hEl)}}
+function progress(){const d=steps.filter(s=>s.classList.contains('done')).length;bar.style.width=(100*d/steps.length)+'%'}
+function check(st){if(!st||st.dataset.manual)return;if(!st.querySelector('.need:not([data-solved])'))Loop.complete(st)}
+window.Loop = {
+  addXp, loseHeart, check,
+  complete(step){
+    if(step.classList.contains('done'))return;
+    step.classList.add('done');progress();
+    const next=steps[steps.indexOf(step)+1];
+    if(next){next.classList.remove('locked');}
+    else finish();
+  }
+};
+// single-answer questions: <div class="q" data-answer="b" data-xp="10">
+document.querySelectorAll('.q').forEach(q=>{
+  const opts=[...q.querySelectorAll('.opt')], fb=q.querySelector('.fb');
+  opts.forEach(o=>o.addEventListener('click',()=>{
+    if(q.dataset.solved)return;
+    const ok=o.dataset.k===q.dataset.answer;
+    o.classList.remove('wrong');void o.offsetWidth;
+    o.classList.add(ok?'right':'wrong');
+    fb.className='fb show '+(ok?'good':'bad');
+    fb.innerHTML=(ok?'<b>'+(q.dataset.good||'Nice.')+'</b> ':'<b>'+(q.dataset.bad||'Not quite.')+'</b> ')+'<span>'+o.dataset.why+'</span>';
+    if(ok){q.dataset.solved=1;opts.forEach(x=>x.disabled=true);addXp(+(q.dataset.xp||10));
+      check(q.closest('.step'));}
+    else{loseHeart();o.disabled=true;}
+  }));
+});
+// order widgets: tap bank items into slots, then Check
+document.querySelectorAll('.order').forEach(w=>{
+  const bank=w.querySelector('.bank'),slots=w.querySelector('.slots'),btn=w.querySelector('.chk'),fb=w.querySelector('.fb'),n=bank.children.length;
+  function upd(){btn.disabled=slots.children.length!==n}
+  w.addEventListener('click',e=>{const it=e.target.closest('.oi');if(!it||w.dataset.solved)return;
+    (it.parentElement===bank?slots:bank).appendChild(it);it.classList.remove('bad');upd()});
+  btn.addEventListener('click',()=>{
+    const items=[...slots.children];let ok=true;
+    items.forEach((it,i)=>{const r=+it.dataset.pos===i;it.classList.toggle('bad',!r);it.classList.toggle('good',r);if(!r)ok=false});
+    fb.className='fb show '+(ok?'good':'bad');
+    if(ok){fb.innerHTML='<b>In order.</b> <span>'+w.dataset.why+'</span>';w.dataset.solved=1;btn.disabled=true;addXp(+(w.dataset.xp||15));check(w.closest('.step'))}
+    else{fb.innerHTML='<b>Not yet.</b> <span>The red ones are in the wrong place. Tap them to send them back.</span>';loseHeart()}
+  });
+});
+// tap-to-open explorers
+document.querySelectorAll('.tapall').forEach(w=>{
+  const panel=w.querySelector('.tap-panel'),min=+(w.dataset.min||3),seen=new Set();
+  w.querySelectorAll('.tap').forEach(t=>t.addEventListener('click',()=>{
+    w.querySelectorAll('.tap').forEach(x=>x.classList.toggle('on',x===t));
+    panel.innerHTML=t.querySelector('template').innerHTML;
+    if(!seen.has(t)){seen.add(t);addXp(3)}
+    const c=w.querySelector('.tapcount');if(c)c.textContent=Math.min(seen.size,min)+' of '+min;
+    if(seen.size>=min&&!w.dataset.solved){w.dataset.solved=1;check(w.closest('.step'))}
+  }));
+});
+// glossary popup
+const pop=document.createElement('div');pop.className='pop';pop.setAttribute('role','tooltip');document.body.appendChild(pop);
+let openT=null;
+function hide(){pop.classList.remove('show');openT=null}
+document.addEventListener('click',e=>{
+  const t=e.target.closest('.term');
+  if(!t){if(!e.target.closest('.pop'))hide();return}
+  if(openT===t){hide();return}
+  const [name,def]=G[t.dataset.term];
+  pop.innerHTML='<b></b>';pop.firstChild.textContent=name;pop.append(def);
+  pop.classList.add('show');openT=t;
+  const r=t.getBoundingClientRect(),w=pop.offsetWidth,h=pop.offsetHeight;
+  let x=Math.min(Math.max(8,r.left),innerWidth-w-8), y=r.bottom+8;
+  if(y+h>innerHeight-8)y=r.top-h-8;
+  pop.style.left=x+'px';pop.style.top=y+'px';
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')hide()});
+addEventListener('scroll',hide,{passive:true});
+// series dots
+const seen=store.get('cta-loop-series-done')||[];
+document.querySelectorAll('.series a').forEach(a=>{if(a.dataset.n===LESSON)a.classList.add('here');else if(seen.includes(a.dataset.n))a.classList.add('seen')});
+function finish(){
+  const f=document.querySelector('.finish');
+  f.querySelector('.fx').textContent=xp;f.querySelector('.fh').textContent=hearts;
+  f.classList.add('show');f.scrollIntoView({block:'center'});
+  if(!seen.includes(LESSON)){seen.push(LESSON);store.set('cta-loop-series-done',seen)}
+  confetti();
+}
+function confetti(){
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+  const c=document.createElement('canvas');c.className='confetti';document.body.appendChild(c);
+  const x=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;
+  const cols=['#0F7C72','#3A6EA5','#F2B33D','#C8413A','#9466C4'];
+  const P=Array.from({length:140},()=>({x:Math.random()*c.width,y:-20-Math.random()*c.height*.5,vx:(Math.random()-.5)*3,vy:2+Math.random()*3,r:Math.random()*6.28,s:6+Math.random()*6,c:cols[Math.random()*5|0]}));
+  let t=0;(function f(){x.clearRect(0,0,c.width,c.height);P.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=.1;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);x.restore()});
+  if(++t<220)requestAnimationFrame(f);else c.remove()})();
+}
+progress();
+})();
+</script><script>
+(function(){
+const r=document.getElementById('pad'),pv=document.getElementById('pv'),t=document.getElementById('tile'),js=document.getElementById('js'),w=document.getElementById('q3wrap');
+function draw(){const v=+r.value;pv.textContent=v;t.style.padding=v+'px';
+  js.innerHTML=v===4?'<span class="c">// nothing here: 4 is the theme value</span>'
+   :'<span class="k">"visualContainerObjects"</span>: {\n  <span class="k">"padding"</span>: [{ <span class="k">"properties"</span>: {\n    <span class="k">"top"</span>: <span class="n">'+v+'D</span> } }] }';
+  if(v!==4)w.hidden=false}
+r.addEventListener('input',draw);draw();
+})();
+</script><script src="../../assets/js/lessons-data.js"></script>
+<script src="../../assets/js/nav.js" data-page="04-claude/why-the-report-is-text"></script>
+</body></html>
