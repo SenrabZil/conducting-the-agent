@@ -392,6 +392,55 @@ window.PBS_COURSE = {
           "path": "07-tiles/is-the-platform-ready/index.html"
         }
       ]
+    },
+    {
+      "id": "08-scaffolding",
+      "title": "Scaffolding",
+      "summary": "What went up around a coding agent while it built the report, and how it came down to leave the public kit.",
+      "lessons": [
+        {
+          "slug": "the-brief-comes-first",
+          "title": "The brief comes first",
+          "summary": "Write the brief before the build. Give every file a purpose. Make every yes cover one step.",
+          "path": "08-scaffolding/the-brief-comes-first/index.html"
+        },
+        {
+          "slug": "specs-before-files",
+          "title": "Specs before files",
+          "summary": "Decide every table and tile on paper first, give every name one home, and check against it.",
+          "path": "08-scaffolding/specs-before-files/index.html"
+        },
+        {
+          "slug": "the-workbook",
+          "title": "The workbook",
+          "summary": "One home for every number, one grain per table, and every data decision written down.",
+          "path": "08-scaffolding/the-workbook/index.html"
+        },
+        {
+          "slug": "generators-not-hand-writing",
+          "title": "Generators, not hand-writing",
+          "summary": "Generate from the spec. Same input, same output. Desktop wins on format.",
+          "path": "08-scaffolding/generators-not-hand-writing/index.html"
+        },
+        {
+          "slug": "phases-and-stop-points",
+          "title": "Phases and stop points",
+          "summary": "Read and report first, stop after every phase, and check each layer with numbers you know.",
+          "path": "08-scaffolding/phases-and-stop-points/index.html"
+        },
+        {
+          "slug": "the-register",
+          "title": "The register",
+          "summary": "Describe every number once, let the report read it, and mark the gaps.",
+          "path": "08-scaffolding/the-register/index.html"
+        },
+        {
+          "slug": "taking-the-scaffolding-down",
+          "title": "Taking the scaffolding down",
+          "summary": "Publish from a clean copy, prove each change, test your checks, and turn slips into rules.",
+          "path": "08-scaffolding/taking-the-scaffolding-down/index.html"
+        }
+      ]
     }
   ],
   "closing": {

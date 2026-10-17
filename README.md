@@ -2,7 +2,7 @@
 
 Building a Power BI model with Claude Code.
 
-A free, interactive course of about 50 short lessons, built on a real Power BI
+A free, interactive course of about 60 short lessons, built on a real Power BI
 project made with a coding agent. Start at the course map:
 
 **https://senrabzil.github.io/conducting-the-agent/**
@@ -21,9 +21,10 @@ through the link above. Offline, download the repository and open
 6. The validator
 7. The move to Fabric
 8. Reading the Tiles
+9. Scaffolding
 
 The course ends with "Your roadmap", a 90-day plan built from your own
-answers. Coming next: Scaffolding.
+answers.
 
 The project files the lessons refer to are at
 https://github.com/SenrabZil/conducting-the-agent-kit.

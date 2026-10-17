@@ -2,7 +2,7 @@
 
 Building a Power BI model with Claude Code.
 
-A free, public course of about 50 interactive HTML explainers covering Liz's
+A free, public course of about 60 interactive HTML explainers covering Liz's
 Power BI project, published on GitHub Pages at
 https://senrabzil.github.io/conducting-the-agent/ and shared on LinkedIn.
 Readers land on the course map and click through lessons in order.
@@ -36,11 +36,12 @@ assets/css/             shared house-style CSS
 assets/js/              shared chooser and navigation scripts
 assets/img/             images, including og-cover.png (1200x627)
 00-roadmap/  01-setup/  02-seed/  03-model/  04-claude/  05-validator/  06-fabric/  07-tiles/
+08-scaffolding/
 what-a-ba-does/         standalone page (see below)
 glossary/
 ```
 
-- Standalone pages sit outside the eight modules and are not in
+- Standalone pages sit outside the nine modules and are not in
   `lessons.json` or the prev/next chain. They get the shared footer and
   the title format "Page title · Conducting the agent".
   - `what-a-ba-does/index.html` (from `Roadmap/what-a-ba-does.html`):
@@ -57,8 +58,8 @@ glossary/
   regenerate `assets/js/lessons-data.js`. Pages read that copy, because
   browsers block loading `lessons.json` from a local file.
 - Course order: 00-roadmap, 01-setup, 02-seed, 03-model, 04-claude,
-  05-validator, 06-fabric, 07-tiles. "Your roadmap" is the last lesson
-  of the course, after tiles.
+  05-validator, 06-fabric, 07-tiles, 08-scaffolding. "Your roadmap" is
+  the last lesson of the course, after scaffolding.
 - GitHub links to the project files go to
   https://github.com/SenrabZil/conducting-the-agent-kit
 
@@ -106,15 +107,18 @@ them now.
   | 05-validator | The validator |
   | 06-fabric | The move to Fabric |
   | 07-tiles | Reading the Tiles |
+  | 08-scaffolding | Scaffolding |
 
 - Header badges keep their short labels (Roadmap, Setup, Seed, Model,
-  Validator, Fabric, Tiles). The landing page badge is "Conducting".
+  Validator, Fabric, Tiles, Scaffolding). The landing page badge is
+  "Conducting".
 - `<title>` format: "Lesson title · Series · Conducting the agent".
   Module pages: "Series · Conducting the agent". Landing page:
   "Conducting the agent · Building a Power BI model with Claude Code".
 - Module pages carry no unit numbering.
-- Still to come, shown only as one "Coming next" line (never as tiles):
-  Scaffolding.
+- Still to come: nothing, so no page shows a "Coming next" line. A series
+  announced before it's built is shown only as one "Coming next" line
+  (never as tiles).
 
 ## Lessons on hold
 
