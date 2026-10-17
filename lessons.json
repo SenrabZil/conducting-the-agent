@@ -344,56 +344,7 @@
       ]
     },
     {
-      "id": "07-tiles",
-      "title": "Reading the Tiles",
-      "summary": "Read a finished Power BI report tile by tile, the way a business analyst does: what each number rests on and when to trust it.",
-      "lessons": [
-        {
-          "slug": "where-to-worry-first",
-          "title": "Where should I worry first?",
-          "summary": "Read a report's overview page the way a business analyst does: the Basis line before the number, then what the chart's order and the scatter's corners tell you.",
-          "path": "07-tiles/where-to-worry-first/index.html"
-        },
-        {
-          "slug": "who-controls-supply",
-          "title": "Who controls supply?",
-          "summary": "Look at one commodity in layers and see how much of its supply sits with a few countries, both in today's output and in what's still in the ground.",
-          "path": "07-tiles/who-controls-supply/index.html"
-        },
-        {
-          "slug": "how-exposed-is-europe",
-          "title": "How exposed is Europe?",
-          "summary": "Look at the same commodity from Europe's side: check what each share is a share of, and spot the tiles that don't follow the slicer.",
-          "path": "07-tiles/how-exposed-is-europe/index.html"
-        },
-        {
-          "slug": "what-will-demand-need",
-          "title": "What will demand need?",
-          "summary": "Follow a demand scenario from cars to metals across several tiles, and see why the biggest number isn't always the scarcest metal.",
-          "path": "07-tiles/what-will-demand-need/index.html"
-        },
-        {
-          "slug": "is-concentration-worse",
-          "title": "Is concentration getting worse?",
-          "summary": "Move from one commodity to all of them: read a concentration index from 0 to 10,000, count what's over the line and check the units.",
-          "path": "07-tiles/is-concentration-worse/index.html"
-        },
-        {
-          "slug": "can-i-trust-the-numbers",
-          "title": "Can I trust these numbers?",
-          "summary": "Read the page that checks the other pages: what a hold on a tile means, and why zero is the number you want to see.",
-          "path": "07-tiles/can-i-trust-the-numbers/index.html"
-        },
-        {
-          "slug": "is-the-platform-ready",
-          "title": "Is the new platform ready?",
-          "summary": "Check a report moved to a new platform by reading a grid of differences and deciding whether 99% matching is good enough.",
-          "path": "07-tiles/is-the-platform-ready/index.html"
-        }
-      ]
-    },
-    {
-      "id": "08-scaffolding",
+      "id": "07-scaffolding",
       "title": "Scaffolding",
       "summary": "What went up around a coding agent while it built the report, and how it came down to leave the public kit.",
       "lessons": [
@@ -401,43 +352,92 @@
           "slug": "the-brief-comes-first",
           "title": "The brief comes first",
           "summary": "Write the brief before the build. Give every file a purpose. Make every yes cover one step.",
-          "path": "08-scaffolding/the-brief-comes-first/index.html"
+          "path": "07-scaffolding/the-brief-comes-first/index.html"
         },
         {
           "slug": "specs-before-files",
           "title": "Specs before files",
           "summary": "Decide every table and tile on paper first, give every name one home, and check against it.",
-          "path": "08-scaffolding/specs-before-files/index.html"
+          "path": "07-scaffolding/specs-before-files/index.html"
         },
         {
           "slug": "the-workbook",
           "title": "The workbook",
           "summary": "One home for every number, one grain per table, and every data decision written down.",
-          "path": "08-scaffolding/the-workbook/index.html"
+          "path": "07-scaffolding/the-workbook/index.html"
         },
         {
           "slug": "generators-not-hand-writing",
           "title": "Generators, not hand-writing",
           "summary": "Generate from the spec. Same input, same output. Desktop wins on format.",
-          "path": "08-scaffolding/generators-not-hand-writing/index.html"
+          "path": "07-scaffolding/generators-not-hand-writing/index.html"
         },
         {
           "slug": "phases-and-stop-points",
           "title": "Phases and stop points",
           "summary": "Read and report first, stop after every phase, and check each layer with numbers you know.",
-          "path": "08-scaffolding/phases-and-stop-points/index.html"
+          "path": "07-scaffolding/phases-and-stop-points/index.html"
         },
         {
           "slug": "the-register",
           "title": "The register",
           "summary": "Describe every number once, let the report read it, and mark the gaps.",
-          "path": "08-scaffolding/the-register/index.html"
+          "path": "07-scaffolding/the-register/index.html"
         },
         {
           "slug": "taking-the-scaffolding-down",
           "title": "Taking the scaffolding down",
           "summary": "Publish from a clean copy, prove each change, test your checks, and turn slips into rules.",
-          "path": "08-scaffolding/taking-the-scaffolding-down/index.html"
+          "path": "07-scaffolding/taking-the-scaffolding-down/index.html"
+        }
+      ]
+    },
+    {
+      "id": "08-tiles",
+      "title": "Reading the Tiles",
+      "summary": "Read a finished Power BI report tile by tile, the way a business analyst does: what each number rests on and when to trust it.",
+      "lessons": [
+        {
+          "slug": "where-to-worry-first",
+          "title": "Where should I worry first?",
+          "summary": "Read a report's overview page the way a business analyst does: the Basis line before the number, then what the chart's order and the scatter's corners tell you.",
+          "path": "08-tiles/where-to-worry-first/index.html"
+        },
+        {
+          "slug": "who-controls-supply",
+          "title": "Who controls supply?",
+          "summary": "Look at one commodity in layers and see how much of its supply sits with a few countries, both in today's output and in what's still in the ground.",
+          "path": "08-tiles/who-controls-supply/index.html"
+        },
+        {
+          "slug": "how-exposed-is-europe",
+          "title": "How exposed is Europe?",
+          "summary": "Look at the same commodity from Europe's side: check what each share is a share of, and spot the tiles that don't follow the slicer.",
+          "path": "08-tiles/how-exposed-is-europe/index.html"
+        },
+        {
+          "slug": "what-will-demand-need",
+          "title": "What will demand need?",
+          "summary": "Follow a demand scenario from cars to metals across several tiles, and see why the biggest number isn't always the scarcest metal.",
+          "path": "08-tiles/what-will-demand-need/index.html"
+        },
+        {
+          "slug": "is-concentration-worse",
+          "title": "Is concentration getting worse?",
+          "summary": "Move from one commodity to all of them: read a concentration index from 0 to 10,000, count what's over the line and check the units.",
+          "path": "08-tiles/is-concentration-worse/index.html"
+        },
+        {
+          "slug": "can-i-trust-the-numbers",
+          "title": "Can I trust these numbers?",
+          "summary": "Read the page that checks the other pages: what a hold on a tile means, and why zero is the number you want to see.",
+          "path": "08-tiles/can-i-trust-the-numbers/index.html"
+        },
+        {
+          "slug": "is-the-platform-ready",
+          "title": "Is the new platform ready?",
+          "summary": "Check a report moved to a new platform by reading a grid of differences and deciding whether 99% matching is good enough.",
+          "path": "08-tiles/is-the-platform-ready/index.html"
         }
       ]
     }

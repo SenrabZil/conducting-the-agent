@@ -20,8 +20,8 @@ through the link above. Offline, download the repository and open
 5. Three in the loop
 6. The validator
 7. The move to Fabric
-8. Reading the Tiles
-9. Scaffolding
+8. Scaffolding
+9. Reading the Tiles
 
 The course ends with "Your roadmap", a 90-day plan built from your own
 answers.

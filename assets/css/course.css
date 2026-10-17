@@ -71,6 +71,121 @@
   font-weight: 700;
 }
 
+/* Files popup and glossary sheet: a centred box with a full border, not a sheet from the bottom.
+   "html" outranks each page's own .gback / .gsheet rules, which load after this file. */
+html .gback, .pbs-fback { align-items: center; padding: 24px 16px; }
+html .gsheet, .pbs-fsheet {
+  border: 2px solid var(--line, #DEE3E6);
+  border-radius: 22px;
+  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
+  padding: 22px 20px;
+}
+@media (max-width: 520px) {
+  html .gback, .pbs-fback { padding: 12px; }
+  html .gsheet, .pbs-fsheet { max-height: calc(100vh - 24px); max-height: calc(100dvh - 24px); padding: 20px 16px; }
+}
+
+/* Files button and popup for the series whose template has none (build-site.py add_files, assets/js/files.js).
+   Same look as the Tiles and Scaffolding popup, under pbs-f* names so the templates' own classes don't clash. */
+.pbs-files {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: 900 14px var(--sans, "Nunito", system-ui, sans-serif);
+  line-height: 1.2;
+  color: var(--blue-d, #2B5A8C);
+  background: var(--panel, #FFFFFF);
+  border: 2px solid var(--line, #DEE3E6);
+  border-bottom-width: 4px;
+  border-radius: 12px;
+  padding: 5px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.pbs-files:active { transform: translateY(2px); border-bottom-width: 2px; }
+.pbs-files svg { width: 18px; height: 18px; }
+@media (max-width: 430px) {
+  .pbs-files span { display: none; }
+  .pbs-files { padding: 5px 7px; }
+  /* the added button needs room: tighten only the headers that carry it */
+  header .bar:has(.pbs-files) { gap: 8px; }
+  header .bar:has(.pbs-files) .pbar { min-width: 24px; }
+  header .bar:has(.pbs-files) .home span { display: none; }
+  header.top .top-in:has(.pbs-files) { gap: 8px; padding-left: 12px; padding-right: 12px; }
+  header.top .top-in:has(.pbs-files) .home { font-size: 13px; }
+}
+@media (max-width: 360px) {
+  header .bar:has(.pbs-files), header.top .top-in:has(.pbs-files) { gap: 6px; padding-left: 10px; padding-right: 10px; }
+}
+
+.pbs-fback {
+  position: fixed;
+  inset: 0;
+  z-index: 75;
+  background: rgba(0, 0, 0, .35);
+  display: none;
+  justify-content: center;
+  box-sizing: border-box;
+}
+.pbs-fback.show { display: flex; }
+.pbs-fsheet {
+  position: relative;
+  box-sizing: border-box;
+  background: var(--bg, #FFFFFF);
+  color: var(--ink, #2D3439);
+  font-family: var(--sans, "Nunito", system-ui, sans-serif);
+  text-align: left;
+  width: min(720px, 100%);
+  overflow-y: auto;
+  animation: pbs-fin .3s cubic-bezier(.3, 1.2, .5, 1);
+}
+@keyframes pbs-fin { from { transform: translateY(40px); opacity: 0; } }
+.pbs-fx {
+  position: absolute; top: 8px; right: 8px;
+  width: 28px; height: 28px;
+  border-radius: 10px;
+  border: 2px solid var(--line, #DEE3E6);
+  background: var(--panel, #FFFFFF);
+  color: var(--slate, #5E6870);
+  font: 900 14px var(--sans, "Nunito", system-ui, sans-serif);
+  line-height: 1;
+  cursor: pointer;
+}
+.pbs-fh { display: flex; align-items: center; gap: 10px; margin: 0 0 4px; font-size: 24px; font-weight: 900; line-height: 1.2; color: var(--ink, #2D3439); }
+.pbs-ficn { width: 28px; height: 28px; flex: none; display: inline-block; vertical-align: middle; }
+.pbs-fh .pbs-ficn { width: 30px; height: 30px; }
+.pbs-fintro { margin: 0 0 6px; font-size: 14.5px; line-height: 1.45; color: var(--slate, #5E6870); }
+.pbs-frow {
+  display: flex; gap: 12px; align-items: flex-start; justify-content: space-between;
+  border: 2px solid var(--line, #DEE3E6); border-bottom-width: 4px; border-radius: 14px;
+  padding: 12px 14px; margin: 10px 0;
+  background: var(--panel, #FFFFFF);
+}
+.pbs-frow > div { flex: 1; min-width: 0; }
+.pbs-frow b { display: block; font-size: 16px; font-weight: 900; color: var(--ink, #2D3439); }
+.pbs-frow p { margin: 2px 0 0; font-size: 14.5px; line-height: 1.45; color: var(--slate, #5E6870); }
+.pbs-frow p b { display: inline; font-size: inherit; }
+.pbs-fic {
+  flex: none; width: 44px; height: 44px; border-radius: 14px;
+  background: var(--soft, #F3F5F6);
+  display: flex; align-items: center; justify-content: center;
+}
+.pbs-fbtn {
+  flex: none;
+  font-family: var(--sans, "Nunito", system-ui, sans-serif);
+  font-weight: 800; font-size: 13.5px;
+  color: var(--blue-d, #2B5A8C);
+  background: var(--panel, #FFFFFF);
+  border: 2px solid var(--line, #DEE3E6); border-bottom-width: 4px; border-radius: 12px;
+  padding: 6px 11px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.pbs-fbtn:active { transform: translateY(2px); border-bottom-width: 2px; }
+@media (max-width: 520px) { .pbs-frow { flex-direction: column; } .pbs-fbtn { align-self: flex-start; } }
+
 /* Very narrow phones (320-360px): let each template's header shrink to make room for About */
 @media (max-width: 360px) {
   header .bar { gap: 8px; }

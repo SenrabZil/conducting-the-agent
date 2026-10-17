@@ -35,18 +35,21 @@ lessons.json            single source of truth for modules and order
 assets/css/             shared house-style CSS
 assets/js/              shared chooser and navigation scripts
 assets/img/             images, including og-cover.png (1200x627)
-00-roadmap/  01-setup/  02-seed/  03-model/  04-claude/  05-validator/  06-fabric/  07-tiles/
-08-scaffolding/
-what-a-ba-does/         standalone page (see below)
+00-roadmap/  01-setup/  02-seed/  03-model/  04-claude/  05-validator/  06-fabric/
+07-scaffolding/  08-tiles/
+07-tiles/  08-scaffolding/  what-a-ba-does/   redirects only (see below)
 glossary/
 ```
 
 - Standalone pages sit outside the nine modules and are not in
   `lessons.json` or the prev/next chain. They get the shared footer and
-  the title format "Page title · Conducting the agent".
-  - `what-a-ba-does/index.html` (from `Roadmap/what-a-ba-does.html`):
-    "What a business analyst does". Linked from the "Work with me"
-    section on about.html.
+  the title format "Page title · Conducting the agent". None now.
+- Redirects: published addresses that moved are kept as bare redirect
+  pages, built by tools/build-site.py, so links already on LinkedIn work.
+  - `07-tiles/…` → `08-tiles/…` and `08-scaffolding/…` → `07-scaffolding/…`
+    (same slugs).
+  - `what-a-ba-does/` → `about.html#hiring`. The source,
+    `Roadmap/what-a-ba-does.html`, stays on G: as an unused archive.
 
 - Each lesson lives at `<module>/<slug>/index.html`.
 - Each module folder has its own `index.html` listing its lessons.
@@ -58,8 +61,8 @@ glossary/
   regenerate `assets/js/lessons-data.js`. Pages read that copy, because
   browsers block loading `lessons.json` from a local file.
 - Course order: 00-roadmap, 01-setup, 02-seed, 03-model, 04-claude,
-  05-validator, 06-fabric, 07-tiles, 08-scaffolding. "Your roadmap" is
-  the last lesson of the course, after scaffolding.
+  05-validator, 06-fabric, 07-scaffolding, 08-tiles. "Your roadmap" is
+  the last lesson of the course, after Reading the Tiles.
 - GitHub links to the project files go to
   https://github.com/SenrabZil/conducting-the-agent-kit
 
@@ -106,11 +109,11 @@ them now.
   | 04-claude | Three in the loop |
   | 05-validator | The validator |
   | 06-fabric | The move to Fabric |
-  | 07-tiles | Reading the Tiles |
-  | 08-scaffolding | Scaffolding |
+  | 07-scaffolding | Scaffolding |
+  | 08-tiles | Reading the Tiles |
 
 - Header badges keep their short labels (Roadmap, Setup, Seed, Model,
-  Validator, Fabric, Tiles, Scaffolding). The landing page badge is
+  Validator, Fabric, Scaffolding, Tiles). The landing page badge is
   "Conducting".
 - `<title>` format: "Lesson title · Series · Conducting the agent".
   Module pages: "Series · Conducting the agent". Landing page:
